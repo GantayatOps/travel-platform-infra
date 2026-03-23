@@ -5,3 +5,7 @@ provider "aws" {
 module "network_layer" {
   source = "./terraform/network"
 }
+
+module "security_layer" {
+  source = "./terraform/security"
+}
