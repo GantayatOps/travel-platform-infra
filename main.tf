@@ -8,4 +8,6 @@ module "network_layer" {
 
 module "security_layer" {
   source = "./terraform/security"
+
+  vpc_id = module.network_layer.vpc_id
 }
