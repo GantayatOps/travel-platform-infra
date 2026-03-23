@@ -16,6 +16,10 @@ resource "aws_security_group" "bastion_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name = "bastion-sg"
+  }
 }
 
 # App SG
@@ -36,5 +40,9 @@ resource "aws_security_group" "app_sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "app-sg"
   }
 }

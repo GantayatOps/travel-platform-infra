@@ -11,3 +11,10 @@ module "security_layer" {
 
   vpc_id = module.network_layer.vpc_id
 }
+
+module "compute_layer" {
+  source = "./terraform/compute"
+
+  public_subnet_id = module.network_layer.public_subnet_id
+  bastion_sg_id = module.security_layer.bastion_sg_id
+}
