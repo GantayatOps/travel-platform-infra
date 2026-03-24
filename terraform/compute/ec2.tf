@@ -1,7 +1,22 @@
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023.*-kernel-6.1-x86_64"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 # Bastion Host(Public Subnet)
 resource "aws_instance" "bastion_host" {
   #Fix Hardcoded AMI
-  ami           = "ami-022062aacfecac5bd"
+  ami           = data.aws_ami.amazon_linux.image_id
   instance_type = "t3.micro"
 
   subnet_id = var.public_subnet_id
@@ -20,7 +35,7 @@ resource "aws_instance" "bastion_host" {
 #Private EC2 - App Server
 resource "aws_instance" "app_server" {
   #Fix Hardcoded AMI
-  ami           = "ami-022062aacfecac5bd"
+  ami           = data.aws_ami.amazon_linux.image_id
   instance_type = "t3.micro"
 
   subnet_id = var.private_subnet_id
