@@ -12,9 +12,17 @@ module "security_layer" {
   vpc_id = module.network_layer.vpc_id
 }
 
+
 module "compute_layer" {
   source = "./terraform/compute"
 
-  public_subnet_id = module.network_layer.public_subnet_id
+  # From network layer
+  public_subnet_id  = module.network_layer.public_subnet_id
+  private_subnet_id = module.network_layer.private_subnet_id
+
+  # From security layer
   bastion_sg_id = module.security_layer.bastion_sg_id
+  app_sg_id     = module.security_layer.app_sg_id
+
+  key_name = "travel-platform-key"
 }

@@ -1,9 +1,24 @@
 variable "public_subnet_id" {
-  description = "Subnet where EC2 will be launched"
+  description = "Public Subnet ID where EC2 will be launched"
+  type        = string
+}
+
+variable "private_subnet_id" {
+  description = "Private Subnet ID where EC2 will be launched"
   type        = string
 }
 
 variable "bastion_sg_id" {
   description = "Bastion SG ID"
+  type        = string
+}
+
+variable "app_sg_id" {
+  description = "App SG ID"
+  type        = string
+}
+
+variable "key_name" {
+  description = "EC2 key pair name"
   type        = string
 }
