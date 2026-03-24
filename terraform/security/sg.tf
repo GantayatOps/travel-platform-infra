@@ -29,10 +29,20 @@ resource "aws_security_group" "app_sg" {
 
   # Allow SSH ONLY from bastion_sg
   ingress {
+    description     = "Allow SSH only from Bastion SG"
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
     security_groups = [aws_security_group.bastion_sg.id]
+  }
+
+  # SG for port 3000
+  ingress {
+    description = "App port from VPC"
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
   }
 
   egress {
