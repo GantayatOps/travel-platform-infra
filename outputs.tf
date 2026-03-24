@@ -5,3 +5,8 @@ output "bastion_public_ip" {
 output "app_private_ip" {
   value = module.compute_layer.app_private_ip
 }
+
+output "db_endpoint" {
+  value = module.storage_layer.db_endpoint
+    
+  }
