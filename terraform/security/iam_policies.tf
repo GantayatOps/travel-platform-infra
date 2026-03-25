@@ -1,6 +1,6 @@
 # S3 access permissions
 resource "aws_iam_policy" "s3_policy" {
-  name        = "ec2_s3_policy"
+  name = "ec2_s3_policy"
 
   # Terraform's "jsonencode" function converts a
   # Terraform expression result to valid JSON syntax.

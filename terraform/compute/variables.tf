@@ -22,3 +22,7 @@ variable "key_name" {
   description = "EC2 key pair name"
   type        = string
 }
+
+variable "instance_profile_name" {
+  type = string
+}

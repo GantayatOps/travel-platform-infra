@@ -46,6 +46,8 @@ resource "aws_instance" "app_server" {
 
   key_name = var.key_name
 
+  iam_instance_profile = var.instance_profile_name
+
   tags = {
     Name = "app-server"
   }
