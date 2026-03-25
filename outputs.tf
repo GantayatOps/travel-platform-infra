@@ -7,6 +7,5 @@ output "app_private_ip" {
 }
 
 output "db_endpoint" {
-  value = module.storage_layer.db_endpoint
-    
-  }
+  value = module.database_layer.db_endpoint
+}

@@ -27,8 +27,8 @@ module "compute_layer" {
   key_name = "travel-platform-key"
 }
 
-module "storage_layer" {
-  source = "./terraform/storage"
+module "database_layer" {
+  source = "./terraform/database"
 
   # From Network layer
   private_subnet_ids = [
@@ -37,5 +37,4 @@ module "storage_layer" {
   ]
   # From security layer
   rds_sg_id = module.security_layer.rds_sg_id
-  
 }
