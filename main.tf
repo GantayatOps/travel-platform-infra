@@ -8,7 +8,8 @@ module "network_layer" {
 
 module "security_layer" {
   source = "./terraform/security"
-
+  
+  # From Network Layer
   vpc_id = module.network_layer.vpc_id
 }
 
@@ -24,6 +25,7 @@ module "compute_layer" {
   bastion_sg_id = module.security_layer.bastion_sg_id
   app_sg_id     = module.security_layer.app_sg_id
 
+ # Key-Value Pair stored in AWS
   key_name = "travel-platform-key"
 }
 
@@ -37,4 +39,8 @@ module "database_layer" {
   ]
   # From security layer
   rds_sg_id = module.security_layer.rds_sg_id
+}
+
+module "storage_layer" {
+  source = "./terraform/storage"
 }
