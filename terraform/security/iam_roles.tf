@@ -1,3 +1,4 @@
+# EC2 assumes this role
 resource "aws_iam_role" "ec2_s3_role" {
   name = "ec2_s3_access_role"
 
