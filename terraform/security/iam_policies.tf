@@ -2,19 +2,26 @@
 resource "aws_iam_policy" "s3_policy" {
   name = "ec2_s3_policy"
 
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
+        # Object-level permissions
+        Effect = "Allow"
         Action = [
           "s3:PutObject",
           "s3:GetObject"
         ]
-        Effect   = "Allow"
         Resource = "${var.bucket_arn}/*"
       },
+      {
+        # Bucket-level permission
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket"
+        ]
+        Resource = var.bucket_arn
+      }
     ]
   })
 }
