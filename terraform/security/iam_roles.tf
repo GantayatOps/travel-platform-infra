@@ -1,9 +1,7 @@
-# EC2 assumes this role
-resource "aws_iam_role" "ec2_s3_role" {
-  name = "ec2_s3_access_role"
+# IAM Role for EC2 to access S3
+resource "aws_iam_role" "ec2_app_role" {
+  name = "ec2_app_role"
 
-  # Terraform's "jsonencode" function converts a
-  # Terraform expression result to valid JSON syntax.
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
