@@ -11,6 +11,9 @@ module "security_layer" {
   
   # From Network Layer
   vpc_id = module.network_layer.vpc_id
+
+  # From Storage Layer
+  bucket_arn = module.storage_layer.bucket_arn
 }
 
 
