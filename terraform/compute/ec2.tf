@@ -47,6 +47,8 @@ resource "aws_instance" "app_server" {
 
   iam_instance_profile = var.instance_profile_name
 
+  user_data = file("${path.module}/user_data.sh")
+
   tags = {
     Name = "app-server"
   }
