@@ -51,13 +51,13 @@ resource "aws_iam_policy" "ecr_policy" {
   })
 }
 
-# Attach policy to role
+# Attach S3 policy to role
 resource "aws_iam_role_policy_attachment" "attach" {
   role       = aws_iam_role.ec2_app_role.name
   policy_arn = aws_iam_policy.s3_policy.arn
 }
 
-# Attach policy to role
+# Attach ECR policy to role
 resource "aws_iam_role_policy_attachment" "ecr_attach" {
   role       = aws_iam_role.ec2_app_role.name
   policy_arn = aws_iam_policy.ecr_policy.arn

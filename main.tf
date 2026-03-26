@@ -32,9 +32,6 @@ module "compute_layer" {
   # Key-Value Pair stored in AWS
   key_name = "travel-platform-key"
   
-  #AMI with Docker pre-installed
-  # Fix Hardcoded AMI
-  app_ami_id = "ami-04e55fb1ed1532c7d" 
 }
 
 module "database_layer" {
