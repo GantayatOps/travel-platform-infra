@@ -29,8 +29,12 @@ module "compute_layer" {
   app_sg_id     = module.security_layer.app_sg_id
   instance_profile_name = module.security_layer.instance_profile_name
 
- # Key-Value Pair stored in AWS
+  # Key-Value Pair stored in AWS
   key_name = "travel-platform-key"
+  
+  #AMI with Docker pre-installed
+  # Fix Hardcoded AMI
+  app_ami_id = "ami-04e55fb1ed1532c7d" 
 }
 
 module "database_layer" {

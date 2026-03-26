@@ -15,7 +15,6 @@ data "aws_ami" "amazon_linux" {
 
 # Bastion Host(Public Subnet)
 resource "aws_instance" "bastion_host" {
-  #Fix Hardcoded AMI
   ami           = data.aws_ami.amazon_linux.image_id
   instance_type = "t3.micro"
 
@@ -34,8 +33,8 @@ resource "aws_instance" "bastion_host" {
 
 #Private EC2 - App Server
 resource "aws_instance" "app_server" {
-  #Fix Hardcoded AMI
-  ami           = data.aws_ami.amazon_linux.image_id
+  #AMI with Docker pre-installed
+  ami           = var.app_ami_id
   instance_type = "t3.micro"
 
   subnet_id = var.private_subnet_id

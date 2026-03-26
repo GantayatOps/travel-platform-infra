@@ -26,3 +26,9 @@ variable "key_name" {
 variable "instance_profile_name" {
   type = string
 }
+
+# Custom AMI for app server (Docker pre-installed)
+variable "app_ami_id" {
+  description = "AMI ID for app server"
+  type        = string
+}
