@@ -1,11 +1,10 @@
-FROM python:3.10-slim
+FROM python:3.9-slim
 
 WORKDIR /app
 
+# Copy single file
 COPY app.py .
 
 RUN pip install flask boto3
-
-EXPOSE 3000
 
 CMD ["python", "app.py"]

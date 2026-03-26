@@ -4,10 +4,10 @@ import boto3
 app = Flask(__name__)
 
 # S3 client (uses IAM role automatically)
-s3 = boto3.client("s3")
+s3 = boto3.client("s3", region_name="ap-south-2")
 
-BUCKET_NAME = "app_bucket"  # replace if actual bucket name differs
-
+BUCKET_NAME = "travel-platform-assets-952341"  # replace if actual bucket name differs
+print("BUCKET:", BUCKET_NAME)
 @app.route("/")
 def home():
     return "Hello from Python Docker App on Private EC2"
