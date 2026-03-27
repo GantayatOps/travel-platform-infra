@@ -1,5 +1,5 @@
 # Bastion Host SG
-resource "aws_security_group" "bastion_sg" {
+resource "aws_security_group" "travel_platform_bastion_sg" {
   name   = "bastion-sg"
   vpc_id = var.vpc_id
 
@@ -18,12 +18,14 @@ resource "aws_security_group" "bastion_sg" {
   }
 
   tags = {
-    Name = "bastion-sg"
-  }
+  Name = "travel-platform-bastion-sg"
+  Project = "travel-platform"
+  Env     = "dev"
+}
 }
 
 # App SG
-resource "aws_security_group" "app_sg" {
+resource "aws_security_group" "travel_platform_app_sg" {
   name   = "app-sg"
   vpc_id = var.vpc_id
 
@@ -33,7 +35,7 @@ resource "aws_security_group" "app_sg" {
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
-    security_groups = [aws_security_group.bastion_sg.id]
+    security_groups = [aws_security_group.travel_platform_bastion_sg.id]
   }
 
   # SG for port 3000
@@ -53,12 +55,14 @@ resource "aws_security_group" "app_sg" {
   }
 
   tags = {
-    Name = "app-sg"
-  }
+  Name = "travel-platform-app-sg"
+  Project = "travel-platform"
+  Env     = "dev"
+}
 }
 
 # RDS SG
-resource "aws_security_group" "rds_sg" {
+resource "aws_security_group" "travel_platform_rds_sg" {
   name   = "rds-sg"
   vpc_id = var.vpc_id
 
@@ -67,7 +71,7 @@ resource "aws_security_group" "rds_sg" {
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [aws_security_group.app_sg.id]
+    security_groups = [aws_security_group.travel_platform_app_sg.id]
   }
 
   egress {
@@ -78,6 +82,8 @@ resource "aws_security_group" "rds_sg" {
   }
 
   tags = {
-    Name = "rds-sg"
-  }
+  Name = "travel-platform-rds-sg"
+  Project = "travel-platform"
+  Env     = "dev"
+}
 }

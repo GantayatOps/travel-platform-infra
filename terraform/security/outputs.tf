@@ -1,15 +1,15 @@
 output "bastion_sg_id" {
-  value = aws_security_group.bastion_sg.id
+  value = aws_security_group.travel_platform_bastion_sg.id
 }
 
 output "app_sg_id" {
-  value = aws_security_group.app_sg.id
+  value = aws_security_group.travel_platform_app_sg.id
 }
 
 output "rds_sg_id" {
-  value = aws_security_group.rds_sg.id
+  value = aws_security_group.travel_platform_rds_sg.id
 }
 
-output "instance_profile_name" {
-  value = aws_iam_instance_profile.ec2_profile.name
+output "ec2_instance_profile_name" {
+  value = aws_iam_instance_profile.travel_platform_ec2_instance_profile.name
 }

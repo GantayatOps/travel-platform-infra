@@ -4,5 +4,6 @@ variable "vpc_id" {
 }
 
 variable "bucket_arn" {
+  description = "ARN of S3 bucket used by application"
   type = string
 }
