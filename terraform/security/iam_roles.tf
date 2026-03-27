@@ -17,7 +17,7 @@ resource "aws_iam_role" "travel_platform_ec2_role" {
   })
 
   tags = {
-  Project = "travel-platform"
-  Env     = "dev"
-}
+    Project = "travel-platform"
+    Env     = "dev"
+  }
 }

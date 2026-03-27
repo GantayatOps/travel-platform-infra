@@ -26,9 +26,15 @@ resource "aws_iam_policy" "travel_platform_s3_access_policy" {
   })
 
   tags = {
-  Project = "travel-platform"
-  Env     = "dev"
+    Project = "travel-platform"
+    Env     = "dev"
+  }
 }
+
+# Attach S3 policy to role
+resource "aws_iam_role_policy_attachment" "s3_attach" {
+  role       = aws_iam_role.travel_platform_ec2_role.name
+  policy_arn = aws_iam_policy.travel_platform_s3_access_policy.arn
 }
 
 # IAM Policy which defines what EC2 can do with ECR
@@ -56,19 +62,50 @@ resource "aws_iam_policy" "travel_platform_ecr_pull_policy" {
   })
 
   tags = {
-  Project = "travel-platform"
-  Env     = "dev"
-}
-}
-
-# Attach S3 policy to role
-resource "aws_iam_role_policy_attachment" "s3_attach" {
-  role       = aws_iam_role.travel_platform_ec2_role.name
-  policy_arn = aws_iam_policy.travel_platform_s3_access_policy.arn
+    Project = "travel-platform"
+    Env     = "dev"
+  }
 }
 
 # Attach ECR policy to role
 resource "aws_iam_role_policy_attachment" "ecr_attach" {
   role       = aws_iam_role.travel_platform_ec2_role.name
   policy_arn = aws_iam_policy.travel_platform_ecr_pull_policy.arn
+}
+
+resource "aws_iam_policy" "travel_platform_messaging_policy" {
+  name = "travel_platform_messaging_policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "AllowSQSSendMessage"
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage"
+        ]
+        Resource = [var.sqs_queue_arn]
+      },
+      {
+        Sid    = "AllowSNSPublish"
+        Effect = "Allow"
+        Action = [
+          "sns:Publish"
+        ]
+        Resource = [var.sns_topic_arn]
+      }
+    ]
+  })
+
+  tags = {
+    Project = "travel-platform"
+    Env     = "dev"
+  }
+}
+
+# Attach SNS/SQS policy to role
+resource "aws_iam_role_policy_attachment" "sqs_sns_attach" {
+  role       = aws_iam_role.travel_platform_ec2_role.name
+  policy_arn = aws_iam_policy.travel_platform_messaging_policy.arn
 }

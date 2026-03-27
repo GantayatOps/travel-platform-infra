@@ -19,7 +19,7 @@ resource "aws_instance" "bastion_host" {
 #Private EC2 - App Server
 resource "aws_instance" "app_server" {
   #AMI with Docker pre-installed
-  ami = data.aws_ami.custom_ami.id
+  ami           = data.aws_ami.custom_ami.id
   instance_type = "t3.micro"
 
   subnet_id = var.private_subnet_id

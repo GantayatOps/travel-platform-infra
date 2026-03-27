@@ -18,10 +18,10 @@ resource "aws_security_group" "travel_platform_bastion_sg" {
   }
 
   tags = {
-  Name = "travel-platform-bastion-sg"
-  Project = "travel-platform"
-  Env     = "dev"
-}
+    Name    = "travel-platform-bastion-sg"
+    Project = "travel-platform"
+    Env     = "dev"
+  }
 }
 
 # App SG
@@ -55,10 +55,10 @@ resource "aws_security_group" "travel_platform_app_sg" {
   }
 
   tags = {
-  Name = "travel-platform-app-sg"
-  Project = "travel-platform"
-  Env     = "dev"
-}
+    Name    = "travel-platform-app-sg"
+    Project = "travel-platform"
+    Env     = "dev"
+  }
 }
 
 # RDS SG
@@ -82,8 +82,8 @@ resource "aws_security_group" "travel_platform_rds_sg" {
   }
 
   tags = {
-  Name = "travel-platform-rds-sg"
-  Project = "travel-platform"
-  Env     = "dev"
-}
+    Name    = "travel-platform-rds-sg"
+    Project = "travel-platform"
+    Env     = "dev"
+  }
 }

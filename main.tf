@@ -14,8 +14,11 @@ module "security_layer" {
 
   # From Storage Layer
   bucket_arn = module.storage_layer.bucket_arn
-}
 
+  # From Messaging Layer
+  sqs_queue_arn = module.messaging_layer.sqs_queue_arn
+  sns_topic_arn = module.messaging_layer.sns_topic_arn
+}
 
 module "compute_layer" {
   source = "./terraform/compute"
@@ -48,4 +51,10 @@ module "database_layer" {
 
 module "storage_layer" {
   source = "./terraform/storage"
+}
+
+module "messaging_layer" {
+  source = "./terraform/messaging"
+
+  notification_email = "shubhamgantayat@gmail.com"
 }

@@ -5,5 +5,13 @@ variable "vpc_id" {
 
 variable "bucket_arn" {
   description = "ARN of S3 bucket used by application"
+  type        = string
+}
+
+variable "sqs_queue_arn" {
+  type = string
+}
+
+variable "sns_topic_arn" {
   type = string
 }
