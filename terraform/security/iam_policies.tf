@@ -1,5 +1,5 @@
 # Allows EC2 to upload and retrieve objects from S3 bucket
-resource "aws_iam_policy" "s3_policy" {
+resource "aws_iam_policy" "travel_platform_s3_access_policy" {
   name = "travel_platform_s3_access_policy"
 
   policy = jsonencode({
@@ -32,7 +32,7 @@ resource "aws_iam_policy" "s3_policy" {
 }
 
 # IAM Policy which defines what EC2 can do with ECR
-resource "aws_iam_policy" "ecr_policy" {
+resource "aws_iam_policy" "travel_platform_ecr_pull_policy" {
   name = "travel_platform_ecr_pull_policy"
 
   policy = jsonencode({
@@ -63,12 +63,12 @@ resource "aws_iam_policy" "ecr_policy" {
 
 # Attach S3 policy to role
 resource "aws_iam_role_policy_attachment" "s3_attach" {
-  role       = aws_iam_role.ec2_app_role.name
-  policy_arn = aws_iam_policy.s3_policy.arn
+  role       = aws_iam_role.travel_platform_ec2_role.name
+  policy_arn = aws_iam_policy.travel_platform_s3_access_policy.arn
 }
 
 # Attach ECR policy to role
 resource "aws_iam_role_policy_attachment" "ecr_attach" {
-  role       = aws_iam_role.ec2_app_role.name
-  policy_arn = aws_iam_policy.ecr_policy.arn
+  role       = aws_iam_role.travel_platform_ec2_role.name
+  policy_arn = aws_iam_policy.travel_platform_ecr_pull_policy.arn
 }

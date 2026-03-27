@@ -1,5 +1,5 @@
 # IAM Role for EC2 to access S3
-resource "aws_iam_role" "ec2_app_role" {
+resource "aws_iam_role" "travel_platform_ec2_role" {
   name = "travel_platform_ec2_role"
 
   assume_role_policy = jsonencode({
