@@ -13,3 +13,7 @@ output "rds_sg_id" {
 output "ec2_instance_profile_name" {
   value = aws_iam_instance_profile.travel_platform_ec2_instance_profile.name
 }
+
+output "lambda_role_arn" {
+  value = aws_iam_role.travel_platform_lambda_role.arn
+}

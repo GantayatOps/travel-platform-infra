@@ -58,3 +58,14 @@ module "messaging_layer" {
 
   notification_email = "shubhamgantayat@gmail.com"
 }
+
+module "lambda_layer" {
+  source = "./terraform/compute/lambda"
+
+  # From messaging layer
+  sqs_queue_arn = module.messaging_layer.sqs_queue_arn
+  sns_topic_arn = module.messaging_layer.sns_topic_arn
+
+  # From Security
+  lambda_role_arn = module.security_layer.lambda_role_arn
+}

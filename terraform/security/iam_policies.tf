@@ -37,7 +37,7 @@ resource "aws_iam_role_policy_attachment" "s3_attach" {
   policy_arn = aws_iam_policy.travel_platform_s3_access_policy.arn
 }
 
-# IAM Policy which defines what EC2 can do with ECR
+# Allows EC2 to access ECR
 resource "aws_iam_policy" "travel_platform_ecr_pull_policy" {
   name = "travel_platform_ecr_pull_policy"
 
@@ -73,6 +73,7 @@ resource "aws_iam_role_policy_attachment" "ecr_attach" {
   policy_arn = aws_iam_policy.travel_platform_ecr_pull_policy.arn
 }
 
+# Allows EC2 to access SQS
 resource "aws_iam_policy" "travel_platform_messaging_policy" {
   name = "travel_platform_messaging_policy"
 
@@ -86,14 +87,6 @@ resource "aws_iam_policy" "travel_platform_messaging_policy" {
           "sqs:SendMessage"
         ]
         Resource = [var.sqs_queue_arn]
-      },
-      {
-        Sid    = "AllowSNSPublish"
-        Effect = "Allow"
-        Action = [
-          "sns:Publish"
-        ]
-        Resource = [var.sns_topic_arn]
       }
     ]
   })
@@ -108,4 +101,41 @@ resource "aws_iam_policy" "travel_platform_messaging_policy" {
 resource "aws_iam_role_policy_attachment" "sqs_sns_attach" {
   role       = aws_iam_role.travel_platform_ec2_role.name
   policy_arn = aws_iam_policy.travel_platform_messaging_policy.arn
+}
+
+# Inline Policy, Maybe later change to Policy + Attachment?
+resource "aws_iam_role_policy" "lambda_policy" {
+  name = "lambda_sqs_sns_policy"
+  role = aws_iam_role.travel_platform_lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "sns:Publish"
+        ]
+        Resource = var.sns_topic_arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueAttributes"
+        ]
+        Resource = var.sqs_queue_arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
 }

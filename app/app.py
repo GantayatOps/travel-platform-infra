@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import boto3
 import os
+import json
 
 app = Flask(__name__)
 
@@ -9,16 +10,13 @@ REGION = "ap-south-2"  # Ensure all services are in same region
 
 s3 = boto3.client("s3", region_name=REGION)
 sqs = boto3.client("sqs", region_name=REGION)
-sns = boto3.client("sns", region_name=REGION)
 
 # Environment Variables
 BUCKET_NAME = os.getenv("BUCKET_NAME", "travel-platform-assets-952341")
 QUEUE_URL = os.getenv("SQS_QUEUE_URL")
-TOPIC_ARN = os.getenv("SNS_TOPIC_ARN")
 
 print("BUCKET:", BUCKET_NAME)
 print("SQS QUEUE:", QUEUE_URL)
-print("SNS TOPIC:", TOPIC_ARN)
 
 # Routes
 @app.route("/")
@@ -42,20 +40,14 @@ def upload_file():
             try:
                 sqs.send_message(
                     QueueUrl=QUEUE_URL,
-                    MessageBody=f"{file.filename} uploaded"
+                    MessageBody=json.dumps({
+                        "file_name": file.filename,
+                        "event": "UPLOAD",
+                        "bucket": BUCKET_NAME
+                    })
                 )
             except Exception as sqs_error:
                 print("SQS ERROR:", str(sqs_error))
-
-        # 3. Publish notification to SNS
-        if TOPIC_ARN:
-            try:
-                sns.publish(
-                    TopicArn=TOPIC_ARN,
-                    Message=f"{file.filename} uploaded successfully"
-                )
-            except Exception as sns_error:
-                print("SNS ERROR:", str(sns_error))
 
         return jsonify({"message": f"{file.filename} uploaded successfully"})
 
