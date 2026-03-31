@@ -32,7 +32,9 @@ resource "aws_instance" "app_server" {
 
   iam_instance_profile = var.instance_profile_name
 
-  user_data = file("${path.module}/user_data.sh")
+  user_data = templatefile("${path.module}/user_data.sh", {
+    sqs_queue_url = var.sqs_queue_url
+  })
 
   tags = {
     Name = "app-server"

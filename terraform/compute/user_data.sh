@@ -15,6 +15,7 @@ docker login --username AWS --password-stdin 949474133081.dkr.ecr.$REGION.amazon
 docker pull 949474133081.dkr.ecr.$REGION.amazonaws.com/travel-app-repo:latest
 
 # Run container
-docker run -d -p 3000:3000 --restart always \
---name travel-app \
-949474133081.dkr.ecr.$REGION.amazonaws.com/travel-app-repo:latest
+docker run -d -p 3000:3000 --name travel-app \
+  -e BUCKET_NAME=travel-platform-assets-952341 \
+  -e SQS_QUEUE_URL=${sqs_queue_url} \
+  949474133081.dkr.ecr.$REGION.amazonaws.com/travel-app-repo:latest

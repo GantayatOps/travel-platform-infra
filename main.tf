@@ -34,9 +34,11 @@ module "compute_layer" {
 
   # Key-Value Pair stored in AWS
   key_name = "travel-platform-key"
-  
-}
 
+  #From messaging layer
+  sqs_queue_url = module.messaging_layer.sqs_queue_url
+
+}
 module "database_layer" {
   source = "./terraform/database"
 
