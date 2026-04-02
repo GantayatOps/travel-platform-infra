@@ -4,14 +4,16 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
-  id-token: write
-  contents: read
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
 
 env:
   AWS_REGION: ap-south-2
   ECR_REPOSITORY: travel-app-repo
+  ECR_REGISTRY: 949474133081.dkr.ecr.ap-south-2.amazonaws.com
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
@@ -29,21 +31,17 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to ECR
-        run: |
-          aws ecr get-login-password --region $AWS_REGION \
-          | docker login --username AWS \
-          --password-stdin 949474133081.dkr.ecr.ap-south-2.amazonaws.com
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
         run: |
-          docker build -t $ECR_REPOSITORY:latest ./app
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./app
 
       - name: Tag images
         run: |
-          docker tag $ECR_REPOSITORY:latest 949474133081.dkr.ecr.ap-south-2.amazonaws.com/$ECR_REPOSITORY:latest
-          docker tag $ECR_REPOSITORY:latest 949474133081.dkr.ecr.ap-south-2.amazonaws.com/$ECR_REPOSITORY:${{ env.IMAGE_TAG }}
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:latest $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
       - name: Push to ECR
         run: |
-          docker push 949474133081.dkr.ecr.ap-south-2.amazonaws.com/$ECR_REPOSITORY:latest
-          docker push 949474133081.dkr.ecr.ap-south-2.amazonaws.com/$ECR_REPOSITORY:${{ env.IMAGE_TAG }}
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
