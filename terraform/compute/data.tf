@@ -1,4 +1,5 @@
 data "aws_ami" "amazon_linux" {
+  # Can lead to EC2 replacement
   most_recent = true
   owners      = ["amazon"]
 
