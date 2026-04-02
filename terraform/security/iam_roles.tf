@@ -44,3 +44,31 @@ resource "aws_iam_role" "travel_platform_lambda_role" {
     Env     = "dev"
   }
 }
+
+resource "aws_iam_role" "travel_platform_github_role" {
+  name = "travel_platform_github_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.github.arn
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+            "token.actions.githubusercontent.com:sub" = "repo:GantayatOps/travel-platform-infra:ref:refs/heads/main"
+          }
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Project = "travel-platform"
+    Env     = "dev"
+  }
+}

@@ -1,0 +1,49 @@
+name: travel-platform-ci-cd
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ap-south-2
+  ECR_REPOSITORY: travel-app-repo
+  IMAGE_TAG: ${{ github.sha }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::949474133081:role/travel_platform_github_role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password --region $AWS_REGION \
+          | docker login --username AWS \
+          --password-stdin 949474133081.dkr.ecr.ap-south-2.amazonaws.com
+
+      - name: Build Docker image
+        run: |
+          docker build -t $ECR_REPOSITORY:latest ./app
+
+      - name: Tag images
+        run: |
+          docker tag $ECR_REPOSITORY:latest 949474133081.dkr.ecr.ap-south-2.amazonaws.com/$ECR_REPOSITORY:latest
+          docker tag $ECR_REPOSITORY:latest 949474133081.dkr.ecr.ap-south-2.amazonaws.com/$ECR_REPOSITORY:${{ env.IMAGE_TAG }}
+
+      - name: Push to ECR
+        run: |
+          docker push 949474133081.dkr.ecr.ap-south-2.amazonaws.com/$ECR_REPOSITORY:latest
+          docker push 949474133081.dkr.ecr.ap-south-2.amazonaws.com/$ECR_REPOSITORY:${{ env.IMAGE_TAG }}

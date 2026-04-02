@@ -31,7 +31,7 @@ resource "aws_iam_policy" "travel_platform_s3_access_policy" {
   }
 }
 
-# Attach S3 policy to role
+# Attach S3 policy to EC2 role
 resource "aws_iam_role_policy_attachment" "s3_attach" {
   role       = aws_iam_role.travel_platform_ec2_role.name
   policy_arn = aws_iam_policy.travel_platform_s3_access_policy.arn
@@ -67,7 +67,7 @@ resource "aws_iam_policy" "travel_platform_ecr_pull_policy" {
   }
 }
 
-# Attach ECR policy to role
+# Attach ECR policy to EC2 role
 resource "aws_iam_role_policy_attachment" "ecr_attach" {
   role       = aws_iam_role.travel_platform_ec2_role.name
   policy_arn = aws_iam_policy.travel_platform_ecr_pull_policy.arn
@@ -97,7 +97,7 @@ resource "aws_iam_policy" "travel_platform_messaging_policy" {
   }
 }
 
-# Attach SNS/SQS policy to role
+# Attach SQS policy to EC2 role
 resource "aws_iam_role_policy_attachment" "sqs_sns_attach" {
   role       = aws_iam_role.travel_platform_ec2_role.name
   policy_arn = aws_iam_policy.travel_platform_messaging_policy.arn
@@ -138,4 +138,37 @@ resource "aws_iam_role_policy" "lambda_policy" {
       }
     ]
   })
+}
+
+resource "aws_iam_policy" "travel_platform_ecr_push_policy" {
+  name = "travel_platform_ecr_push_policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "ECRPush"
+        Effect = "Allow"
+        Action = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:CompleteLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:InitiateLayerUpload",
+          "ecr:PutImage"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+
+  tags = {
+    Project = "travel-platform"
+    Env     = "dev"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "github_ecr_attach" {
+  role       = aws_iam_role.travel_platform_github_role.name
+  policy_arn = aws_iam_policy.travel_platform_ecr_push_policy.arn
 }
