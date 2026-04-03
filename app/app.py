@@ -21,7 +21,7 @@ print("SQS QUEUE:", QUEUE_URL)
 # Routes
 @app.route("/")
 def home():
-    return "Hello from Python Docker App on Private EC2 v3"
+    return "Hello from Python Docker App on Private EC2 v4"
 
 # Upload file to S3 + Trigger Events
 @app.route("/upload", methods=["POST"])

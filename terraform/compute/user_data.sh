@@ -24,7 +24,7 @@ docker run -d -p 3000:3000 --name travel-app \
   $ECR_URI:latest
 
 # CREATE UPDATE SCRIPT (USED BY SSM)
-cat << EOF > /home/ec2-user/update_app.sh
+cat << 'EOF' > /home/ec2-user/update_app.sh
 #!/bin/bash
 set -e
 
