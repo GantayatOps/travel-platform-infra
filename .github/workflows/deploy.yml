@@ -50,6 +50,6 @@ jobs:
         run: |
           aws ssm send-command \
           --document-name "AWS-RunShellScript" \
-          --targets "Key=instanceIds,Values=${{ secrets.EC2_INSTANCE_ID }}" \
-          --parameters 'commands=["/home/ec2-user/update_app.sh"]' \
-          --region ${{ secrets.AWS_REGION }}
+          --targets "Key=tag:Role,Values=app" \
+          --parameters "commands=[\"/home/ec2-user/update_app.sh $IMAGE_TAG\"]" \
+          --region ${{ env.AWS_REGION }}

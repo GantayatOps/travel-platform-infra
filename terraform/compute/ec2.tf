@@ -12,8 +12,12 @@ resource "aws_instance" "bastion_host" {
   key_name = var.key_name
 
   tags = {
-    Name = "bastion-host"
-  }
+  Name        = "travel_platform_bastion_host"
+  Project     = "travel_platform"
+  Role        = "bastion"
+  Environment = "dev"
+  Access      = "ssh"
+}
 }
 
 #Private EC2 - App Server
@@ -37,6 +41,9 @@ resource "aws_instance" "app_server" {
   })
 
   tags = {
-    Name = "app-server"
-  }
+  Name        = "travel_platform_app_server"
+  Project     = "travel_platform"
+  Role        = "app"
+  Environment = "dev"
+}
 }

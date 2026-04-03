@@ -1,54 +1,62 @@
 #!/bin/bash
+set -e
 
 # Start Docker
 systemctl start docker
 systemctl enable docker
 
-# Get region
+# Region
 REGION=ap-south-2
+ACCOUNT_ID=949474133081
+ECR_REPO=travel-app-repo
+ECR_URI=$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$ECR_REPO
 
 # Login to ECR
 aws ecr get-login-password --region $REGION | \
-docker login --username AWS --password-stdin 949474133081.dkr.ecr.$REGION.amazonaws.com
+docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
 
-# Pull image
-docker pull 949474133081.dkr.ecr.$REGION.amazonaws.com/travel-app-repo:latest
+# Initial deployment
+docker pull $ECR_URI:latest
 
-# Run container
 docker run -d -p 3000:3000 --name travel-app \
   -e BUCKET_NAME=travel-platform-assets-952341 \
   -e SQS_QUEUE_URL=${sqs_queue_url} \
-  949474133081.dkr.ecr.$REGION.amazonaws.com/travel-app-repo:latest
+  $ECR_URI:latest
 
-# Auto-update script for continuous deployment
+# CREATE UPDATE SCRIPT (USED BY SSM)
 cat << EOF > /home/ec2-user/update_app.sh
 #!/bin/bash
+set -e
 
-# Get region
 REGION=ap-south-2
+ACCOUNT_ID=949474133081
+ECR_REPO=travel-app-repo
+ECR_URI=$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/$ECR_REPO
 
-# Login to ECR
+IMAGE_TAG=$1
+
+if [ -z "$IMAGE_TAG" ]; then
+  echo "IMAGE_TAG not provided"
+  exit 1
+fi
+
+echo "Deploying image: $IMAGE_TAG"
+
 aws ecr get-login-password --region $REGION | \
-docker login --username AWS --password-stdin 949474133081.dkr.ecr.$REGION.amazonaws.com
+docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
 
-# Pull latest image
-docker pull 949474133081.dkr.ecr.$REGION.amazonaws.com/travel-app-repo:latest
+docker pull $ECR_URI:$IMAGE_TAG
 
-# Stop existing container (if running)
 docker stop travel-app || true
-
-# Remove old container
 docker rm travel-app || true
 
-# Run container with latest image
 docker run -d -p 3000:3000 --name travel-app \
   -e BUCKET_NAME=travel-platform-assets-952341 \
   -e SQS_QUEUE_URL=${sqs_queue_url} \
-  949474133081.dkr.ecr.$REGION.amazonaws.com/travel-app-repo:latest
+  $ECR_URI:$IMAGE_TAG
+
+echo "Deployment completed"
 EOF
 
+# Make script executable
 chmod +x /home/ec2-user/update_app.sh
-
-# Cron not installed on Private EC2 yet
-# Cron job (runs every 5 minutes)
-(crontab -l 2>/dev/null; echo "*/5 * * * * /home/ec2-user/update_app.sh") | crontab -
