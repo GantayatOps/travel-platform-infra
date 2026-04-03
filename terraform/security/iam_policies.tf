@@ -172,3 +172,31 @@ resource "aws_iam_role_policy_attachment" "github_ecr_attach" {
   role       = aws_iam_role.travel_platform_github_role.name
   policy_arn = aws_iam_policy.travel_platform_ecr_push_policy.arn
 }
+
+resource "aws_iam_role_policy_attachment" "ssm_attach" {
+  role       = aws_iam_role.travel_platform_ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_policy" "travel_platform_ssm_send_command" {
+  name        = "travel_platform_ssm_send_command"
+  description = "Allow GitHub Actions to trigger SSM Run Command"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ssm:SendCommand"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "github_ssm_attach" {
+  role       = aws_iam_role.travel_platform_github_role.name
+  policy_arn = aws_iam_policy.travel_platform_ssm_send_command.arn
+}
