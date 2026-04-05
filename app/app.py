@@ -3,8 +3,8 @@ import boto3
 import os
 import json
 
-from db import test_connection
-from models import Trip, Expense, Photo
+from db import test_connection, engine, SessionLocal
+from models import Trip, Expense, Photo, Base
 
 app = Flask(__name__)
 
@@ -38,23 +38,35 @@ def health():
 @app.route("/trips", methods=["POST"])
 def create_trip():
     db = SessionLocal()
-    data = request.json
+    try:
+        data = request.get_json()
 
-    trip = Trip(user_id=1, name=data.get("name"))
+        if not data or "name" not in data:
+            return jsonify({"error": "name is required"}), 400
 
-    db.add(trip)
-    db.commit()
-    db.refresh(trip)
+        trip = Trip(user_id=1, name=data.get("name"))
 
-    return jsonify({"id": trip.id})
+        db.add(trip)
+        db.commit()
+        db.refresh(trip)
+
+        return jsonify({"id": trip.id})
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
 
 
 @app.route("/trips", methods=["GET"])
 def list_trips():
     db = SessionLocal()
-    trips = db.query(Trip).all()
+    try:
+        trips = db.query(Trip).all()
 
-    return jsonify([{"id": t.id, "name": t.name} for t in trips])
+        return jsonify([{"id": t.id, "name": t.name} for t in trips])
+    finally:
+        db.close()
 
 # Upload file to S3 + Trigger Events
 @app.route("/upload", methods=["POST"])
@@ -101,4 +113,5 @@ def get_file(filename):
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
+    Base.metadata.create_all(bind=engine)
     app.run(host="0.0.0.0", port=3000)
