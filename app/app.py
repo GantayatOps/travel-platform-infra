@@ -3,10 +3,12 @@ import boto3
 import os
 import json
 
+from db import SessionLocal
+from models import Trip, Expense, Photo
+
 app = Flask(__name__)
 
-# AWS Clients (IAM Role based)
-REGION = "ap-south-2"  # Ensure all services are in same region
+REGION = "ap-south-2"
 
 s3 = boto3.client("s3", region_name=REGION)
 sqs = boto3.client("sqs", region_name=REGION)
@@ -15,13 +17,45 @@ sqs = boto3.client("sqs", region_name=REGION)
 BUCKET_NAME = os.getenv("BUCKET_NAME", "travel-platform-assets-952341")
 QUEUE_URL = os.getenv("SQS_QUEUE_URL")
 
+print("===============debug point 1===============")
 print("BUCKET:", BUCKET_NAME)
 print("SQS QUEUE:", QUEUE_URL)
 
-# Routes
 @app.route("/")
 def home():
     return "Hello from Python Docker App on Private EC2 v4"
+
+# DB Health Check
+@app.route("/healthz")
+def health():
+    try:
+        db = SessionLocal()
+        db.execute("SELECT 1")
+        return {"status": "ok"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
+
+# Trip
+@app.route("/trips", methods=["POST"])
+def create_trip():
+    db = SessionLocal()
+    data = request.json
+
+    trip = Trip(user_id=1, name=data.get("name"))
+
+    db.add(trip)
+    db.commit()
+    db.refresh(trip)
+
+    return jsonify({"id": trip.id})
+
+
+@app.route("/trips", methods=["GET"])
+def list_trips():
+    db = SessionLocal()
+    trips = db.query(Trip).all()
+
+    return jsonify([{"id": t.id, "name": t.name} for t in trips])
 
 # Upload file to S3 + Trigger Events
 @app.route("/upload", methods=["POST"])
@@ -67,6 +101,5 @@ def get_file(filename):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Run App
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=3000)
