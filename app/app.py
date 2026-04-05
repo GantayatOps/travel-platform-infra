@@ -43,9 +43,11 @@ def create_trip():
     try:
         data = request.get_json()
 
+        # Validate input
         if not data or "name" not in data:
             return jsonify({"error": "name is required"}), 400
 
+        # Create trip
         trip = Trip(user_id=1, name=data.get("name"))
 
         db.add(trip)
@@ -64,25 +66,79 @@ def create_trip():
 def list_trips():
     db = SessionLocal()
     try:
+        # Fetch all trips
         trips = db.query(Trip).all()
 
         return jsonify([{"id": t.id, "name": t.name} for t in trips])
     finally:
         db.close()
 
+
+# Get total expense for a trip
 @app.route("/trips/<int:trip_id>/total", methods=["GET"])
 def get_trip_total(trip_id):
     db = SessionLocal()
     try:
+        # SUM aggregation in DB
         total = db.query(func.sum(Expense.amount))\
                   .filter(Expense.trip_id == trip_id)\
                   .scalar()
 
         return jsonify({
             "trip_id": trip_id,
-            "total_expense": total or 0
+            "total_expense": total or 0  # handle NULL
         })
 
+    finally:
+        db.close()
+
+# Create expense for a trip
+@app.route("/expenses", methods=["POST"])
+def create_expense():
+    db = SessionLocal()
+    try:
+        data = request.get_json()
+
+        if not data or "trip_id" not in data or "amount" not in data:
+            return jsonify({"error": "trip_id and amount required"}), 400
+
+        expense = Expense(
+            trip_id=data.get("trip_id"),
+            amount=data.get("amount"),
+            category=data.get("category", "general")
+        )
+
+        db.add(expense)
+        db.commit()
+        db.refresh(expense)
+
+        return jsonify({"id": expense.id})
+
+    except Exception as e:
+        db.rollback()
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        db.close()
+
+
+# Get all expenses for a trip
+@app.route("/expenses/<int:trip_id>", methods=["GET"])
+def get_expenses(trip_id):
+    db = SessionLocal()
+    try:
+        expenses = db.query(Expense)\
+                     .filter(Expense.trip_id == trip_id)\
+                     .all()
+
+        return jsonify([
+            {
+                "id": e.id,
+                "amount": e.amount,
+                "category": e.category
+            }
+            for e in expenses
+        ])
     finally:
         db.close()
 
@@ -117,10 +173,12 @@ def upload_file():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 # Generate presigned URL
 @app.route("/get/<filename>", methods=["GET"])
 def get_file(filename):
     try:
+        # Generate temporary secure URL
         url = s3.generate_presigned_url(
             "get_object",
             Params={"Bucket": BUCKET_NAME, "Key": filename},
@@ -129,6 +187,7 @@ def get_file(filename):
         return jsonify({"url": url})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == "__main__":
     Base.metadata.create_all(bind=engine)
