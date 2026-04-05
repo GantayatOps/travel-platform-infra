@@ -6,6 +6,8 @@ import json
 from db import test_connection, engine, SessionLocal
 from models import Trip, Expense, Photo, Base
 
+from sqlalchemy import func
+
 app = Flask(__name__)
 
 REGION = "ap-south-2"
@@ -65,6 +67,22 @@ def list_trips():
         trips = db.query(Trip).all()
 
         return jsonify([{"id": t.id, "name": t.name} for t in trips])
+    finally:
+        db.close()
+
+@app.route("/trips/<int:trip_id>/total", methods=["GET"])
+def get_trip_total(trip_id):
+    db = SessionLocal()
+    try:
+        total = db.query(func.sum(Expense.amount))\
+                  .filter(Expense.trip_id == trip_id)\
+                  .scalar()
+
+        return jsonify({
+            "trip_id": trip_id,
+            "total_expense": total or 0
+        })
+
     finally:
         db.close()
 
