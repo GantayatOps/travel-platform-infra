@@ -102,6 +102,12 @@ def create_expense():
         if not data or "trip_id" not in data or "amount" not in data:
             return jsonify({"error": "trip_id and amount required"}), 400
 
+        # Check if trip exists
+        trip = db.query(Trip).filter(Trip.id == data.get("trip_id")).first()
+        if not trip:
+            return jsonify({"error": "trip not found"}), 404
+
+        # Create expense
         expense = Expense(
             trip_id=data.get("trip_id"),
             amount=data.get("amount"),
