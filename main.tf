@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "ap-south-2"
+  region = var.aws_region
 }
 
 module "network_layer" {
@@ -33,10 +33,13 @@ module "compute_layer" {
   instance_profile_name = module.security_layer.ec2_instance_profile_name
 
   # Key-Value Pair stored in AWS
-  key_name = "travel-platform-key"
+  key_name = var.key_name
 
   #From messaging layer
   sqs_queue_url = module.messaging_layer.sqs_queue_url
+
+  db_endpoint = module.database_layer.db_endpoint
+  db_password = var.db_password
 
 }
 module "database_layer" {
@@ -49,16 +52,20 @@ module "database_layer" {
   ]
   # From security layer
   rds_sg_id = module.security_layer.rds_sg_id
+  
+  db_password = var.db_password
 }
 
 module "storage_layer" {
   source = "./terraform/storage"
+
+  bucket_name = var.bucket_name
 }
 
 module "messaging_layer" {
   source = "./terraform/messaging"
 
-  notification_email = "shubhamgantayat@gmail.com"
+  notification_email = var.notification_email
 }
 
 module "lambda_layer" {

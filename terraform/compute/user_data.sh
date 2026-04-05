@@ -21,6 +21,10 @@ docker pull $ECR_URI:latest
 docker run -d -p 3000:3000 --name travel-app \
   -e BUCKET_NAME=travel-platform-assets-952341 \
   -e SQS_QUEUE_URL=${sqs_queue_url} \
+  -e DB_HOST=${db_endpoint} \
+  -e DB_NAME=postgres \
+  -e DB_USER=postgres \
+  -e DB_PASSWORD=${db_password} \
   $ECR_URI:latest
 
 # CREATE UPDATE SCRIPT (USED BY SSM)
@@ -53,6 +57,10 @@ docker rm travel-app || true
 docker run -d -p 3000:3000 --name travel-app \
   -e BUCKET_NAME=travel-platform-assets-952341 \
   -e SQS_QUEUE_URL=${sqs_queue_url} \
+  -e DB_HOST=${db_endpoint} \
+  -e DB_NAME=postgres \
+  -e DB_USER=postgres \
+  -e DB_PASSWORD=${db_password} \
   $ECR_URI:$IMAGE_TAG
 
 echo "Deployment completed"

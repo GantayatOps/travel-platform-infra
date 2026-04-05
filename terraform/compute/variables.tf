@@ -32,3 +32,14 @@ variable "sqs_queue_url" {
   description = "SQS queue URL used by the application to send messages for asynchronous processing"
   type        = string
 }
+
+variable "db_endpoint" {
+  description = "RDS endpoint"
+  type        = string
+}
+
+variable "db_password" {
+  description = "RDS password"
+  type        = string
+  sensitive   = true
+}

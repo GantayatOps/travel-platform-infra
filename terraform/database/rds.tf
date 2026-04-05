@@ -8,7 +8,7 @@ resource "aws_db_instance" "postgres_db" {
   allocated_storage = 20
   db_name           = "appdb"
   username          = "postgres"
-  password          = "StrongPassword123"
+  password          = var.db_password
 
   publicly_accessible = false
 

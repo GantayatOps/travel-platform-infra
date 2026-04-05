@@ -37,8 +37,10 @@ resource "aws_instance" "app_server" {
   iam_instance_profile = var.instance_profile_name
 
   user_data = templatefile("${path.module}/user_data.sh", {
-    sqs_queue_url = var.sqs_queue_url
-  })
+  sqs_queue_url = var.sqs_queue_url
+  db_endpoint   = var.db_endpoint
+  db_password   = var.db_password
+})
 
   tags = {
   Name        = "travel_platform_app_server"

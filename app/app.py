@@ -3,7 +3,7 @@ import boto3
 import os
 import json
 
-from db import SessionLocal
+from db import test_connection
 from models import Trip, Expense, Photo
 
 app = Flask(__name__)
@@ -29,8 +29,7 @@ def home():
 @app.route("/healthz")
 def health():
     try:
-        db = SessionLocal()
-        db.execute("SELECT 1")
+        test_connection()
         return {"status": "ok"}
     except Exception as e:
         return {"status": "error", "message": str(e)}, 500
