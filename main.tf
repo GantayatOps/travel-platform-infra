@@ -38,7 +38,7 @@ module "compute_layer" {
   #From messaging layer
   sqs_queue_url = module.messaging_layer.sqs_queue_url
 
-  db_endpoint = module.database_layer.db_endpoint
+  db_endpoint = split(":", module.database_layer.db_endpoint)[0]
   db_password = var.db_password
 
 }
