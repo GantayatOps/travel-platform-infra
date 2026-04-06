@@ -192,8 +192,8 @@ def upload_file():
             status="pending"
         )
 
-        db.session.add(new_photo)
-        db.session.commit()
+        db.add(new_photo)
+        db.commit()
 
         # 3. Send message to SQS (async processing trigger)
         if not QUEUE_URL:
