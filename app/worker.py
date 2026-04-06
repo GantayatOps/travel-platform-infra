@@ -4,6 +4,7 @@ import time
 import os
 from sqlalchemy import create_engine, text
 import logging
+from urllib.parse import unquote_plus
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,65 +31,74 @@ engine = create_engine(
 
 
 def process_message(body):
-    data = json.loads(body)
+    try:
+        data = json.loads(body)
 
-    file_name = data.get("file_name")
-    bucket = data.get("bucket")
-    event = data.get("event")
+        # S3 event structure
+        record = data["Records"][0]
 
-    if not file_name:
-        logger.warning("Message missing file_name. Skipping.")
+        bucket = record["s3"]["bucket"]["name"]
+        file_name = unquote_plus(record["s3"]["object"]["key"])
+
+        logger.info(f"Processing file: {file_name} | bucket: {bucket}")
+
+    except (KeyError, IndexError, json.JSONDecodeError) as e:
+        logger.error(f"Invalid S3 event format: {e}")
         return
 
-    logger.info(f"Processing file: {file_name} | event: {event}")
+    try:
+        with engine.begin() as conn:
+            # Idempotent update
+            result = conn.execute(
+                text("""
+                    UPDATE photos
+                    SET status = 'processed',
+                        processed_at = NOW()
+                    WHERE s3_key = :file_name
+                    AND status != 'processed'
+                """),
+                {"file_name": file_name}
+            )
 
-    if event != "UPLOAD":
-        logger.warning(f"Skipping unknown event: {event}")
-        return
+            logger.info(f"Rows updated: {result.rowcount}")
 
-    with engine.begin() as conn:
-        # Idempotent update
-        result = conn.execute(
-            text("""
-                UPDATE photos
-                SET status = 'processed', processed_at = NOW()
-                WHERE s3_key = :file_name
-                AND status != 'processed'
-            """),
-            {"file_name": file_name}
-        )
-
-        logger.info(f"Rows updated: {result.rowcount}")
+    except Exception as e:
+        logger.error(f"DB update failed: {str(e)}")
+        raise  # important for retry
 
 
 def poll_sqs():
     while True:
-        response = sqs.receive_message(
-            QueueUrl=QUEUE_URL,
-            MaxNumberOfMessages=5,
-            WaitTimeSeconds=20  # Long polling
-        )
+        try:
+            response = sqs.receive_message(
+                QueueUrl=QUEUE_URL,
+                MaxNumberOfMessages=5,
+                WaitTimeSeconds=20  # Long polling
+            )
 
-        messages = response.get("Messages", [])
+            messages = response.get("Messages", [])
 
-        if not messages:
-            continue
+            if not messages:
+                continue
 
-        for msg in messages:
-            try:
-                process_message(msg["Body"])
+            for msg in messages:
+                try:
+                    process_message(msg["Body"])
 
-                # Delete after success
-                sqs.delete_message(
-                    QueueUrl=QUEUE_URL,
-                    ReceiptHandle=msg["ReceiptHandle"]
-                )
+                    # Delete after success
+                    sqs.delete_message(
+                        QueueUrl=QUEUE_URL,
+                        ReceiptHandle=msg["ReceiptHandle"]
+                    )
 
-                logger.info("Message deleted")
+                    logger.info("Message deleted")
 
-            except Exception as e:
-                logger.error(f"Error processing message: {str(e)}")
-                # Do NOT delete → retry + DLQ
+                except Exception as e:
+                    logger.error(f"Error processing message: {str(e)}")
+                    # Do NOT delete → retry + DLQ
+
+        except Exception as e:
+            logger.error(f"SQS polling error: {str(e)}")
 
         time.sleep(2)
 
