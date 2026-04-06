@@ -13,15 +13,15 @@ app = Flask(__name__)
 REGION = "ap-south-2"
 
 s3 = boto3.client("s3", region_name=REGION)
-sqs = boto3.client("sqs", region_name=REGION)
+# sqs = boto3.client("sqs", region_name=REGION)
 
 # Environment Variables
 BUCKET_NAME = os.getenv("BUCKET_NAME", "travel-platform-assets-952341")
-QUEUE_URL = os.getenv("SQS_QUEUE_URL")
+# QUEUE_URL = os.getenv("SQS_QUEUE_URL")
 
 print("===============debug point 1===============")
 print("BUCKET:", BUCKET_NAME)
-print("SQS QUEUE:", QUEUE_URL)
+# print("SQS QUEUE:", QUEUE_URL)
 
 @app.route("/")
 def home():
@@ -172,7 +172,7 @@ def category_summary(trip_id):
     finally:
         db.close()
 
-# Upload file to S3 + Trigger Events
+# Upload file to S3 + Insert into DB + Trigger SQS
 @app.route("/upload", methods=["POST"])
 def upload_file():
     db = SessionLocal()
@@ -185,7 +185,7 @@ def upload_file():
         # 1. Upload to S3
         s3.upload_fileobj(file, BUCKET_NAME, file.filename)
 
-        # 2. INSERT INTO DB (CRITICAL FIX)
+        # 2. INSERT INTO DB
         new_photo = Photo(
             trip_id=1,  # TODO: replace with dynamic trip_id later
             s3_key=file.filename,
@@ -195,31 +195,38 @@ def upload_file():
         db.add(new_photo)
         db.commit()
 
-        # 3. Send message to SQS (async processing trigger)
-        if not QUEUE_URL:
-            return jsonify({"error": "SQS_QUEUE_URL not set"}), 500
+        # 3. Send message to SQS
+        # if not QUEUE_URL:
+        #     return jsonify({"error": "SQS_QUEUE_URL not set"}), 500
 
-        print("SENDING MESSAGE TO SQS...", flush=True)
+        # print("SENDING MESSAGE TO SQS...", flush=True)
 
-        try:
-            sqs.send_message(
-                QueueUrl=QUEUE_URL,
-                MessageBody=json.dumps({
-                    "file_name": file.filename,
-                    "event": "UPLOAD",
-                    "bucket": BUCKET_NAME
-                })
-            )
-            print("MESSAGE SENT TO SQS", flush=True)
+        # try:
+        #     sqs.send_message(
+        #         QueueUrl=QUEUE_URL,
+        #         MessageBody=json.dumps({
+        #             "file_name": file.filename,
+        #             "event": "UPLOAD",
+        #             "bucket": BUCKET_NAME
+        #         })
+        #     )
+        #     print("MESSAGE SENT TO SQS", flush=True)
 
-        except Exception as sqs_error:
-            print("SQS ERROR:", str(sqs_error), flush=True)
-            raise sqs_error
+        # except Exception as sqs_error:
+        #     print("SQS ERROR:", str(sqs_error), flush=True)
+        #     raise sqs_error
 
-        return jsonify({"message": f"{file.filename} uploaded successfully"})
+        return jsonify({
+            "message": f"{file.filename} uploaded successfully",
+            "status": "pending"
+        })
 
     except Exception as e:
+        db.rollback()
         return jsonify({"error": str(e)}), 500
+    
+    finally:
+        db.close()
 
 
 # Generate presigned URL

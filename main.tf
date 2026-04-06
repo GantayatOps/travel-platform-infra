@@ -60,12 +60,16 @@ module "storage_layer" {
   source = "./terraform/storage"
 
   bucket_name = var.bucket_name
+
+  # From messaging layer
+  sqs_queue_arn = module.messaging_layer.sqs_queue_arn
 }
 
 module "messaging_layer" {
   source = "./terraform/messaging"
 
   notification_email = var.notification_email
+  bucket_arn = module.storage_layer.bucket_arn
 }
 
 module "lambda_layer" {
