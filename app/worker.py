@@ -3,6 +3,14 @@ import json
 import time
 import os
 from sqlalchemy import create_engine, text
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+)
+
+logger = logging.getLogger(__name__)
 
 REGION = "ap-south-2"
 
@@ -28,13 +36,17 @@ def process_message(body):
     bucket = data.get("bucket")
     event = data.get("event")
 
-    print(f"Processing: {file_name}", flush=True)
-
-    if event != "UPLOAD":
-        print("Skipping unknown event")
+    if not file_name:
+        logger.warning("Message missing file_name. Skipping.")
         return
 
-    with engine.connect() as conn:
+    logger.info(f"Processing file: {file_name} | event: {event}")
+
+    if event != "UPLOAD":
+        logger.warning(f"Skipping unknown event: {event}")
+        return
+
+    with engine.begin() as conn:
         # Idempotent update
         result = conn.execute(
             text("""
@@ -46,7 +58,7 @@ def process_message(body):
             {"file_name": file_name}
         )
 
-        print(f"Rows updated: {result.rowcount}")
+        logger.info(f"Rows updated: {result.rowcount}")
 
 
 def poll_sqs():
@@ -60,7 +72,6 @@ def poll_sqs():
         messages = response.get("Messages", [])
 
         if not messages:
-            print("No messages...")
             continue
 
         for msg in messages:
@@ -73,15 +84,15 @@ def poll_sqs():
                     ReceiptHandle=msg["ReceiptHandle"]
                 )
 
-                print("Message deleted")
+                logger.info("Message deleted")
 
             except Exception as e:
-                print("Error:", str(e))
+                logger.error(f"Error processing message: {str(e)}")
                 # Do NOT delete → retry + DLQ
 
         time.sleep(2)
 
 
 if __name__ == "__main__":
-    print("Worker started...", flush=True)
+    logger.info("Worker started. Waiting for messages...")
     poll_sqs()
