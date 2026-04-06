@@ -197,6 +197,7 @@ def upload_file():
                 )
             except Exception as sqs_error:
                 print("SQS ERROR:", str(sqs_error))
+                raise sqs_error
 
         return jsonify({"message": f"{file.filename} uploaded successfully"})
 
