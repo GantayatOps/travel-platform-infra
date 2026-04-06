@@ -148,6 +148,30 @@ def get_expenses(trip_id):
     finally:
         db.close()
 
+# Category-wise expense summary
+@app.route("/trips/<int:trip_id>/category-summary", methods=["GET"])
+def category_summary(trip_id):
+    db = SessionLocal()
+    try:
+        # Aggregate expenses by category
+        results = db.query(
+            Expense.category,
+            func.sum(Expense.amount)
+        ).filter(
+            Expense.trip_id == trip_id
+        ).group_by(
+            Expense.category
+        ).all()
+
+        # Convert to dictionary format
+        return jsonify({
+            category: total
+            for category, total in results
+        })
+
+    finally:
+        db.close()
+
 # Upload file to S3 + Trigger Events
 @app.route("/upload", methods=["POST"])
 def upload_file():
