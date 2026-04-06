@@ -18,6 +18,8 @@ resource "aws_lambda_function" "travel_platform_sqs_processor" {
 }
 
 resource "aws_lambda_event_source_mapping" "sqs_trigger" {
+  count = var.enable_lambda_trigger ? 1 : 0
+  
   event_source_arn = var.sqs_queue_arn
   function_name    = aws_lambda_function.travel_platform_sqs_processor.arn
   batch_size       = 1

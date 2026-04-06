@@ -1,3 +1,7 @@
+variable "enable_lambda_trigger" {
+  default = false
+}
+
 variable "sqs_queue_arn" {
   description = "ARN of the SQS queue used as an event source for the Lambda function"
   type        = string

@@ -38,3 +38,4 @@ class Photo(Base):
     s3_key = Column(String, nullable=False)
     status = Column(String, default="pending")
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    processed_at = Column(DateTime, nullable=True)

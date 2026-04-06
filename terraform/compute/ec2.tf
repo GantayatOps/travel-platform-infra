@@ -12,12 +12,12 @@ resource "aws_instance" "bastion_host" {
   key_name = var.key_name
 
   tags = {
-  Name        = "travel_platform_bastion_host"
-  Project     = "travel_platform"
-  Role        = "bastion"
-  Environment = "dev"
-  Access      = "ssh"
-}
+    Name        = "travel_platform_bastion_host"
+    Project     = "travel_platform"
+    Role        = "bastion"
+    Environment = "dev"
+    Access      = "ssh"
+  }
 }
 
 #Private EC2 - App Server
@@ -37,15 +37,15 @@ resource "aws_instance" "app_server" {
   iam_instance_profile = var.instance_profile_name
 
   user_data = templatefile("${path.module}/user_data.sh", {
-  sqs_queue_url = var.sqs_queue_url
-  db_endpoint   = var.db_endpoint
-  db_password   = var.db_password
-})
+    sqs_queue_url = var.sqs_queue_url
+    db_endpoint   = var.db_endpoint
+    db_password   = var.db_password
+  })
 
   tags = {
-  Name        = "travel_platform_app_server"
-  Project     = "travel_platform"
-  Role        = "app"
-  Environment = "dev"
-}
+    Name        = "travel_platform_app_server"
+    Project     = "travel_platform"
+    Role        = "app"
+    Environment = "dev"
+  }
 }

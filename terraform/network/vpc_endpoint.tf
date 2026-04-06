@@ -93,7 +93,7 @@ resource "aws_vpc_endpoint" "ssm" {
   vpc_id            = aws_vpc.travel_platform_vpc.id
   service_name      = "com.amazonaws.ap-south-2.ssm"
   vpc_endpoint_type = "Interface"
-  subnet_ids        = [
+  subnet_ids = [
     aws_subnet.private_subnet_1.id,
     aws_subnet.private_subnet_2.id
   ]
@@ -106,7 +106,7 @@ resource "aws_vpc_endpoint" "ssmmessages" {
   vpc_id            = aws_vpc.travel_platform_vpc.id
   service_name      = "com.amazonaws.ap-south-2.ssmmessages"
   vpc_endpoint_type = "Interface"
-  subnet_ids        = [
+  subnet_ids = [
     aws_subnet.private_subnet_1.id,
     aws_subnet.private_subnet_2.id
   ]
@@ -119,7 +119,7 @@ resource "aws_vpc_endpoint" "ec2messages" {
   vpc_id            = aws_vpc.travel_platform_vpc.id
   service_name      = "com.amazonaws.ap-south-2.ec2messages"
   vpc_endpoint_type = "Interface"
-  subnet_ids        = [
+  subnet_ids = [
     aws_subnet.private_subnet_1.id,
     aws_subnet.private_subnet_2.id
   ]

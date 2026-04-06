@@ -87,6 +87,16 @@ resource "aws_iam_policy" "travel_platform_messaging_policy" {
           "sqs:SendMessage"
         ]
         Resource = [var.sqs_queue_arn]
+      },
+      {
+        Sid    = "AllowSQSConsumeMessage"
+        Effect = "Allow"
+        Action = [
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueAttributes"
+        ]
+        Resource = [var.sqs_queue_arn]
       }
     ]
   })
