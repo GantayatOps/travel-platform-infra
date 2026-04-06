@@ -185,19 +185,25 @@ def upload_file():
         s3.upload_fileobj(file, BUCKET_NAME, file.filename)
 
         # 2. Send message to SQS (async processing trigger)
-        if QUEUE_URL:
-            try:
-                sqs.send_message(
-                    QueueUrl=QUEUE_URL,
-                    MessageBody=json.dumps({
-                        "file_name": file.filename,
-                        "event": "UPLOAD",
-                        "bucket": BUCKET_NAME
-                    })
-                )
-            except Exception as sqs_error:
-                print("SQS ERROR:", str(sqs_error))
-                raise sqs_error
+        if not QUEUE_URL:
+            return jsonify({"error": "SQS_QUEUE_URL not set"}), 500
+
+        print("SENDING MESSAGE TO SQS...", flush=True)
+
+        try:
+            sqs.send_message(
+                QueueUrl=QUEUE_URL,
+                MessageBody=json.dumps({
+                    "file_name": file.filename,
+                    "event": "UPLOAD",
+                    "bucket": BUCKET_NAME
+                })
+            )
+            print("MESSAGE SENT TO SQS", flush=True)
+
+        except Exception as sqs_error:
+            print("SQS ERROR:", str(sqs_error), flush=True)
+            raise sqs_error
 
         return jsonify({"message": f"{file.filename} uploaded successfully"})
 
