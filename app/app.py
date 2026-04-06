@@ -175,16 +175,27 @@ def category_summary(trip_id):
 # Upload file to S3 + Trigger Events
 @app.route("/upload", methods=["POST"])
 def upload_file():
+    db = SessionLocal()
     file = request.files.get("file")
 
     if not file:
         return jsonify({"error": "No file provided"}), 400
-
+    
     try:
         # 1. Upload to S3
         s3.upload_fileobj(file, BUCKET_NAME, file.filename)
 
-        # 2. Send message to SQS (async processing trigger)
+        # 2. INSERT INTO DB (CRITICAL FIX)
+        new_photo = Photo(
+            trip_id=1,  # TODO: replace with dynamic trip_id later
+            s3_key=file.filename,
+            status="pending"
+        )
+
+        db.session.add(new_photo)
+        db.session.commit()
+
+        # 3. Send message to SQS (async processing trigger)
         if not QUEUE_URL:
             return jsonify({"error": "SQS_QUEUE_URL not set"}), 500
 
