@@ -32,39 +32,41 @@ engine = create_engine(
 
 def process_message(body):
     try:
+        logger.info(f"Raw message body: {body}")  #Debug Point
+
         data = json.loads(body)
 
-        # S3 event structure
-        record = data["Records"][0]
+        if "Records" not in data:
+            raise Exception("Missing 'Records' in S3 event")
 
-        bucket = record["s3"]["bucket"]["name"]
-        file_name = unquote_plus(record["s3"]["object"]["key"])
+        for record in data["Records"]:
+            bucket = record["s3"]["bucket"]["name"]
+            file_name = unquote_plus(record["s3"]["object"]["key"])
 
-        logger.info(f"Processing file: {file_name} | bucket: {bucket}")
+            logger.info(f"Processing file: {file_name} | bucket: {bucket}")
+
+            # DB update per record
+            with engine.begin() as conn:
+                result = conn.execute(
+                    text("""
+                        UPDATE photos
+                        SET status = 'processed',
+                            processed_at = NOW()
+                        WHERE s3_key = :file_name
+                        AND status != 'processed'
+                    """),
+                    {"file_name": file_name}
+                )
+
+                logger.info(f"Rows updated: {result.rowcount}")
 
     except (KeyError, IndexError, json.JSONDecodeError) as e:
         logger.error(f"Invalid S3 event format: {e}")
-        return
-
-    try:
-        with engine.begin() as conn:
-            # Idempotent update
-            result = conn.execute(
-                text("""
-                    UPDATE photos
-                    SET status = 'processed',
-                        processed_at = NOW()
-                    WHERE s3_key = :file_name
-                    AND status != 'processed'
-                """),
-                {"file_name": file_name}
-            )
-
-            logger.info(f"Rows updated: {result.rowcount}")
+        raise Exception(f"Invalid S3 event format: {e}")
 
     except Exception as e:
-        logger.error(f"DB update failed: {str(e)}")
-        raise  # important for retry
+        logger.error(f"Processing failed: {str(e)}")
+        raise  # ensures retry + DLQ
 
 
 def poll_sqs():
@@ -73,7 +75,7 @@ def poll_sqs():
             response = sqs.receive_message(
                 QueueUrl=QUEUE_URL,
                 MaxNumberOfMessages=5,
-                WaitTimeSeconds=20  # Long polling
+                WaitTimeSeconds=20
             )
 
             messages = response.get("Messages", [])
@@ -85,7 +87,7 @@ def poll_sqs():
                 try:
                     process_message(msg["Body"])
 
-                    # Delete after success
+                    # Delete ONLY after successful processing
                     sqs.delete_message(
                         QueueUrl=QUEUE_URL,
                         ReceiptHandle=msg["ReceiptHandle"]
@@ -95,7 +97,7 @@ def poll_sqs():
 
                 except Exception as e:
                     logger.error(f"Error processing message: {str(e)}")
-                    # Do NOT delete → retry + DLQ
+                    # DO NOT delete → allow retry + DLQ
 
         except Exception as e:
             logger.error(f"SQS polling error: {str(e)}")
