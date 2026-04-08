@@ -10,6 +10,10 @@ output "rds_sg_id" {
   value = aws_security_group.travel_platform_rds_sg.id
 }
 
+output "lambda_sg_id" {
+  value = aws_security_group.lambda_sg.id
+}
+
 output "ec2_instance_profile_name" {
   value = aws_iam_instance_profile.travel_platform_ec2_instance_profile.name
 }

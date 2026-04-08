@@ -113,6 +113,16 @@ resource "aws_iam_role_policy_attachment" "sqs_sns_attach" {
   policy_arn = aws_iam_policy.travel_platform_messaging_policy.arn
 }
 
+resource "aws_iam_role_policy_attachment" "lambda_basic_access" {
+  role       = aws_iam_role.travel_platform_lambda_role.id
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_vpc_access" {
+  role       = aws_iam_role.travel_platform_lambda_role.id
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
+
 # Inline Policy, Maybe later change to Policy + Attachment?
 resource "aws_iam_role_policy" "lambda_policy" {
   name = "lambda_sqs_sns_policy"
@@ -140,9 +150,9 @@ resource "aws_iam_role_policy" "lambda_policy" {
       {
         Effect = "Allow"
         Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents"
+          "ec2:CreateNetworkInterface",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DeleteNetworkInterface"
         ]
         Resource = "*"
       }

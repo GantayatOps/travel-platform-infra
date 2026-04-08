@@ -67,11 +67,11 @@ resource "aws_security_group" "travel_platform_rds_sg" {
   vpc_id = var.vpc_id
 
   ingress {
-    description     = "Allow PostgreSQL from app SG"
+    description     = "Allow PostgreSQL from app and lambda SG"
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
-    security_groups = [aws_security_group.travel_platform_app_sg.id]
+    security_groups = [aws_security_group.travel_platform_app_sg.id, aws_security_group.lambda_sg.id]
   }
 
   egress {
@@ -83,6 +83,27 @@ resource "aws_security_group" "travel_platform_rds_sg" {
 
   tags = {
     Name    = "travel-platform-rds-sg"
+    Project = "travel-platform"
+    Env     = "dev"
+  }
+}
+
+resource "aws_security_group" "lambda_sg" {
+  name        = "travel_platform_lambda_sg"
+  description = "Lambda SG"
+  vpc_id      = var.vpc_id
+
+  # No ingress needed
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name    = "travel-platform-lambda-sg"
     Project = "travel-platform"
     Env     = "dev"
   }
