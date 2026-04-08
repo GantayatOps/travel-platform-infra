@@ -16,3 +16,23 @@ variable "lambda_role_arn" {
   description = "IAM role ARN assumed by the Lambda function to access AWS services like SQS, SNS, and CloudWatch"
   type        = string
 }
+
+variable "private_subnet_ids" {
+  type = list(string)
+}
+
+variable "lambda_sg_id" {
+  description = "Lambda SG ID"
+  type        = string
+}
+
+variable "db_password" {
+  description = "Database password"
+  type        = string
+  sensitive   = true
+}
+
+variable "db_host" {
+  description = "Database Address"
+  type        = string
+}

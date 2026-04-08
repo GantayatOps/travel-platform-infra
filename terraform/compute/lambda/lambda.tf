@@ -1,9 +1,16 @@
 resource "aws_lambda_function" "travel_platform_sqs_processor" {
   function_name = "travel_platform_sqs_processor"
+  
+  vpc_config {
+  subnet_ids         = var.private_subnet_ids
+  security_group_ids = [var.lambda_sg_id]
+  }
 
   role          = var.lambda_role_arn
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.10"
+
+  architectures = ["arm64"]
 
   filename         = "${path.module}/lambda_function.zip"
   source_code_hash = filebase64sha256("${path.module}/lambda_function.zip")
@@ -13,6 +20,10 @@ resource "aws_lambda_function" "travel_platform_sqs_processor" {
   environment {
     variables = {
       SNS_TOPIC_ARN = var.sns_topic_arn
+      DB_HOST     = var.db_host
+      DB_NAME     = "appdb"
+      DB_USER     = "postgres"
+      DB_PASSWORD = var.db_password
     }
   }
 }
