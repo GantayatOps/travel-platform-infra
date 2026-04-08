@@ -75,10 +75,24 @@ module "messaging_layer" {
 module "lambda_layer" {
   source = "./terraform/compute/lambda"
 
+  # From tfvars
+  db_password = var.db_password
+  enable_lambda_trigger = var.enable_lambda_trigger
+
   # From messaging layer
   sqs_queue_arn = module.messaging_layer.sqs_queue_arn
   sns_topic_arn = module.messaging_layer.sns_topic_arn
 
   # From Security
   lambda_role_arn = module.security_layer.lambda_role_arn
+  lambda_sg_id = module.security_layer.lambda_sg_id
+
+  # From Network layer
+  private_subnet_ids = [
+    module.network_layer.private_subnet_id,
+    module.network_layer.private_subnet_id_2
+  ]
+  
+  # From Database layer
+  db_host = module.database_layer.db_host
 }
