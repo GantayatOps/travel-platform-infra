@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import os
 from uuid import uuid4
 
@@ -24,6 +25,21 @@ def _photo_key(trip_id, filename):
     return f"trips/{trip_id}/photos/{uuid4().hex}-{safe_filename}"
 
 
+def _serialize_photo(photo):
+    return {
+        "id": photo.id,
+        "trip_id": photo.trip_id,
+        "s3_bucket": photo.s3_bucket,
+        "s3_key": photo.s3_key,
+        "status": photo.status,
+        "content_type": photo.content_type,
+        "size": photo.size,
+        "uploaded_at": photo.uploaded_at.isoformat() if photo.uploaded_at else None,
+        "processed_at": photo.processed_at.isoformat() if photo.processed_at else None,
+        "created_at": photo.created_at.isoformat() if photo.created_at else None,
+    }
+
+
 @upload_bp.route("/upload", methods=["POST"])
 def upload_file():
     db = SessionLocal()
@@ -37,8 +53,12 @@ def upload_file():
 
         new_photo = Photo(
             trip_id=1,
+            s3_bucket=BUCKET_NAME,
             s3_key=file.filename,
             status="pending",
+            content_type=file.mimetype,
+            size=request.content_length,
+            uploaded_at=datetime.now(timezone.utc),
         )
 
         db.add(new_photo)
@@ -47,7 +67,7 @@ def upload_file():
         return jsonify(
             {
                 "message": f"{file.filename} uploaded successfully",
-                "status": "pending",
+                "photo": _serialize_photo(new_photo),
             }
         )
     except Exception as e:
@@ -75,8 +95,10 @@ def presign_photo_upload(trip_id):
         s3_key = _photo_key(trip_id, filename)
         photo = Photo(
             trip_id=trip_id,
+            s3_bucket=BUCKET_NAME,
             s3_key=s3_key,
             status="pending",
+            content_type=content_type,
         )
 
         db.add(photo)
@@ -95,14 +117,13 @@ def presign_photo_upload(trip_id):
 
         return jsonify(
             {
-                "photo_id": photo.id,
+                "photo": _serialize_photo(photo),
                 "upload_url": upload_url,
                 "s3_key": s3_key,
                 "method": "PUT",
                 "headers": {
                     "Content-Type": content_type,
                 },
-                "status": photo.status,
             }
         )
     except Exception as e:

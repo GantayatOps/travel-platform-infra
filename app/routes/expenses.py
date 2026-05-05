@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Blueprint, jsonify, request
 
 from db import SessionLocal
@@ -11,8 +13,26 @@ def _serialize_expense(expense):
         "id": expense.id,
         "trip_id": expense.trip_id,
         "amount": expense.amount,
+        "currency": expense.currency,
         "category": expense.category,
+        "description": expense.description,
+        "spent_at": expense.spent_at.isoformat() if expense.spent_at else None,
+        "created_at": expense.created_at.isoformat() if expense.created_at else None,
     }
+
+
+def _parse_datetime(value, field_name):
+    if value in (None, ""):
+        return None
+
+    if isinstance(value, str):
+        normalized = value.replace("Z", "+00:00")
+        try:
+            return datetime.fromisoformat(normalized)
+        except ValueError:
+            raise ValueError(f"{field_name} must be a valid ISO 8601 datetime")
+
+    raise ValueError(f"{field_name} must be a string")
 
 
 def _create_expense_for_trip(trip_id):
@@ -27,10 +47,18 @@ def _create_expense_for_trip(trip_id):
         if not trip:
             return jsonify({"error": "trip not found"}), 404
 
+        try:
+            spent_at = _parse_datetime(data.get("spent_at"), "spent_at")
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
+
         expense = Expense(
             trip_id=trip_id,
             amount=data.get("amount"),
+            currency=data.get("currency", "INR"),
             category=data.get("category", "general"),
+            description=data.get("description"),
+            spent_at=spent_at,
         )
 
         db.add(expense)
