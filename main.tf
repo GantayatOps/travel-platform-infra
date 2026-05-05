@@ -8,7 +8,7 @@ module "network_layer" {
 
 module "security_layer" {
   source = "./terraform/security"
-  
+
   # From Network Layer
   vpc_id = module.network_layer.vpc_id
 
@@ -28,8 +28,8 @@ module "compute_layer" {
   private_subnet_id = module.network_layer.private_subnet_id
 
   # From security layer
-  bastion_sg_id = module.security_layer.bastion_sg_id
-  app_sg_id     = module.security_layer.app_sg_id
+  bastion_sg_id         = module.security_layer.bastion_sg_id
+  app_sg_id             = module.security_layer.app_sg_id
   instance_profile_name = module.security_layer.ec2_instance_profile_name
 
   # Key-Value Pair stored in AWS
@@ -52,7 +52,7 @@ module "database_layer" {
   ]
   # From security layer
   rds_sg_id = module.security_layer.rds_sg_id
-  
+
   db_password = var.db_password
 }
 
@@ -60,23 +60,29 @@ module "storage_layer" {
   source = "./terraform/storage"
 
   bucket_name = var.bucket_name
-
-  # From messaging layer
-  sqs_queue_arn = module.messaging_layer.sqs_queue_arn
 }
 
 module "messaging_layer" {
   source = "./terraform/messaging"
 
   notification_email = var.notification_email
-  bucket_arn = module.storage_layer.bucket_arn
+  bucket_arn         = module.storage_layer.bucket_arn
+}
+
+module "notification_layer" {
+  source = "./terraform/notifications"
+
+  bucket_id     = module.storage_layer.bucket_id
+  sqs_queue_arn = module.messaging_layer.sqs_queue_arn
+
+  depends_on = [module.messaging_layer]
 }
 
 module "lambda_layer" {
   source = "./terraform/compute/lambda"
 
   # From tfvars
-  db_password = var.db_password
+  db_password           = var.db_password
   enable_lambda_trigger = var.enable_lambda_trigger
 
   # From messaging layer
@@ -85,14 +91,14 @@ module "lambda_layer" {
 
   # From Security
   lambda_role_arn = module.security_layer.lambda_role_arn
-  lambda_sg_id = module.security_layer.lambda_sg_id
+  lambda_sg_id    = module.security_layer.lambda_sg_id
 
   # From Network layer
   private_subnet_ids = [
     module.network_layer.private_subnet_id,
     module.network_layer.private_subnet_id_2
   ]
-  
+
   # From Database layer
   db_host = module.database_layer.db_host
 }
