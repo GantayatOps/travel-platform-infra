@@ -2,6 +2,7 @@ import boto3
 import json
 import time
 import os
+from functools import lru_cache
 from sqlalchemy import create_engine, text
 import logging
 from urllib.parse import unquote_plus
@@ -24,9 +25,25 @@ DB_HOST = os.environ.get("DB_HOST")
 DB_NAME = os.environ.get("DB_NAME")
 DB_USER = os.environ.get("DB_USER")
 DB_PASSWORD = os.environ.get("DB_PASSWORD")
+DB_SECRET_ARN = os.environ.get("DB_SECRET_ARN")
+AWS_REGION_ENV = os.environ.get("AWS_REGION", REGION)
+
+
+@lru_cache(maxsize=1)
+def get_db_password():
+    if DB_PASSWORD:
+        return DB_PASSWORD
+
+    if not DB_SECRET_ARN:
+        raise ValueError("Missing DB password configuration")
+
+    secretsmanager = boto3.client("secretsmanager", region_name=AWS_REGION_ENV)
+    response = secretsmanager.get_secret_value(SecretId=DB_SECRET_ARN)
+    secret = json.loads(response["SecretString"])
+    return secret["password"]
 
 engine = create_engine(
-    f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:5432/{DB_NAME}"
+    f"postgresql://{DB_USER}:{get_db_password()}@{DB_HOST}:5432/{DB_NAME}"
 )
 
 

@@ -89,6 +89,21 @@ resource "aws_vpc_endpoint" "sns" {
   private_dns_enabled = true
 }
 
+resource "aws_vpc_endpoint" "secretsmanager" {
+  vpc_id            = aws_vpc.travel_platform_vpc.id
+  service_name      = "com.amazonaws.ap-south-2.secretsmanager"
+  vpc_endpoint_type = "Interface"
+
+  subnet_ids = [
+    aws_subnet.private_subnet_1.id,
+    aws_subnet.private_subnet_2.id
+  ]
+
+  security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
+
+  private_dns_enabled = true
+}
+
 resource "aws_vpc_endpoint" "ssm" {
   vpc_id            = aws_vpc.travel_platform_vpc.id
   service_name      = "com.amazonaws.ap-south-2.ssm"

@@ -42,12 +42,13 @@ echo "Starting travel-app..."
 # Start App container
 docker run -d -p 3000:3000 --name travel-app \
   --restart always \
+  -e AWS_REGION=$REGION \
   -e BUCKET_NAME=travel-platform-assets-952341 \
   -e SQS_QUEUE_URL=${sqs_queue_url} \
   -e DB_HOST=${db_endpoint} \
   -e DB_NAME=appdb \
   -e DB_USER=postgres \
-  -e DB_PASSWORD=${db_password} \
+  -e DB_SECRET_ARN=${db_secret_arn} \
   $ECR_URI:latest
 
 echo "Waiting before starting worker..."
@@ -58,11 +59,12 @@ sleep 5
 # # Start Worker container
 # docker run -d --name travel-worker \
 #   --restart always \
+#   -e AWS_REGION=$REGION \
 #   -e SQS_QUEUE_URL=${sqs_queue_url} \
 #   -e DB_HOST=${db_endpoint} \
 #   -e DB_NAME=appdb \
 #   -e DB_USER=postgres \
-#   -e DB_PASSWORD=${db_password} \
+#   -e DB_SECRET_ARN=${db_secret_arn} \
 #   $WORKER_ECR_URI:latest
 
 echo "Creating update_app.sh..."
@@ -96,12 +98,13 @@ docker rm travel-app || true
 
 docker run -d -p 3000:3000 --name travel-app \
   --restart always \
+  -e AWS_REGION=$REGION \
   -e BUCKET_NAME=travel-platform-assets-952341 \
   -e SQS_QUEUE_URL=${sqs_queue_url} \
   -e DB_HOST=${db_endpoint} \
   -e DB_NAME=appdb \
   -e DB_USER=postgres \
-  -e DB_PASSWORD=${db_password} \
+  -e DB_SECRET_ARN=${db_secret_arn} \
   $ECR_URI:$IMAGE_TAG
 
 echo "App deployment completed"
@@ -138,11 +141,12 @@ EOF
 # 
 # docker run -d --name travel-worker \
 #   --restart always \
+#   -e AWS_REGION=$REGION \
 #   -e SQS_QUEUE_URL=${sqs_queue_url} \
 #   -e DB_HOST=${db_endpoint} \
 #   -e DB_NAME=appdb \
 #   -e DB_USER=postgres \
-#   -e DB_PASSWORD=${db_password} \
+#   -e DB_SECRET_ARN=${db_secret_arn} \
 #   $ECR_URI:$IMAGE_TAG
 # 
 # echo "Worker deployment completed"

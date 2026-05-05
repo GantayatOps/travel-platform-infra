@@ -39,7 +39,7 @@ resource "aws_instance" "app_server" {
   user_data = templatefile("${path.module}/user_data.sh", {
     sqs_queue_url = var.sqs_queue_url
     db_endpoint   = var.db_endpoint
-    db_password   = var.db_password
+    db_secret_arn = var.db_secret_arn
   })
 
   tags = {

@@ -38,8 +38,7 @@ variable "db_endpoint" {
   type        = string
 }
 
-variable "db_password" {
-  description = "RDS password"
+variable "db_secret_arn" {
+  description = "Secrets Manager ARN containing database credentials"
   type        = string
-  sensitive   = true
 }

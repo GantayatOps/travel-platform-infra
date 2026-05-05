@@ -23,7 +23,7 @@ resource "aws_lambda_function" "travel_platform_sqs_processor" {
       DB_HOST       = var.db_host
       DB_NAME       = "appdb"
       DB_USER       = "postgres"
-      DB_PASSWORD   = var.db_password
+      DB_SECRET_ARN = var.db_secret_arn
     }
   }
 }

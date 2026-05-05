@@ -27,6 +27,7 @@ module "security_layer" {
   # From Messaging Layer
   sqs_queue_arn = module.messaging_layer.sqs_queue_arn
   sns_topic_arn = module.messaging_layer.sns_topic_arn
+  db_secret_arn = module.database_layer.db_secret_arn
 }
 
 module "compute_layer" {
@@ -47,8 +48,8 @@ module "compute_layer" {
   #From messaging layer
   sqs_queue_url = module.messaging_layer.sqs_queue_url
 
-  db_endpoint = split(":", module.database_layer.db_endpoint)[0]
-  db_password = var.db_password
+  db_endpoint   = split(":", module.database_layer.db_endpoint)[0]
+  db_secret_arn = module.database_layer.db_secret_arn
 
 }
 module "database_layer" {
@@ -62,7 +63,6 @@ module "database_layer" {
   # From security layer
   rds_sg_id = module.security_layer.rds_sg_id
 
-  db_password = var.db_password
 }
 
 module "storage_layer" {
@@ -91,7 +91,6 @@ module "lambda_layer" {
   source = "./terraform/compute/lambda"
 
   # From tfvars
-  db_password           = var.db_password
   enable_lambda_trigger = var.enable_lambda_trigger
 
   # From messaging layer
@@ -109,5 +108,6 @@ module "lambda_layer" {
   ]
 
   # From Database layer
-  db_host = module.database_layer.db_host
+  db_host       = module.database_layer.db_host
+  db_secret_arn = module.database_layer.db_secret_arn
 }

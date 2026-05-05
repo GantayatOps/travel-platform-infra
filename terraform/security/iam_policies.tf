@@ -113,6 +113,34 @@ resource "aws_iam_role_policy_attachment" "sqs_sns_attach" {
   policy_arn = aws_iam_policy.travel_platform_messaging_policy.arn
 }
 
+resource "aws_iam_policy" "travel_platform_db_secret_access_policy" {
+  name = "travel_platform_db_secret_access_policy"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = var.db_secret_arn
+      }
+    ]
+  })
+
+  tags = {
+    Project = "travel-platform"
+    Env     = "dev"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "ec2_db_secret_attach" {
+  role       = aws_iam_role.travel_platform_ec2_role.name
+  policy_arn = aws_iam_policy.travel_platform_db_secret_access_policy.arn
+}
+
 resource "aws_iam_role_policy_attachment" "lambda_basic_access" {
   role       = aws_iam_role.travel_platform_lambda_role.id
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
@@ -146,6 +174,14 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "sqs:GetQueueAttributes"
         ]
         Resource = var.sqs_queue_arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "secretsmanager:GetSecretValue",
+          "secretsmanager:DescribeSecret"
+        ]
+        Resource = var.db_secret_arn
       },
       {
         Effect = "Allow"

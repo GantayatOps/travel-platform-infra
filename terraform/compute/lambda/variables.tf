@@ -26,13 +26,12 @@ variable "lambda_sg_id" {
   type        = string
 }
 
-variable "db_password" {
-  description = "Database password"
-  type        = string
-  sensitive   = true
-}
-
 variable "db_host" {
   description = "Database Address"
+  type        = string
+}
+
+variable "db_secret_arn" {
+  description = "Secrets Manager ARN containing database credentials"
   type        = string
 }

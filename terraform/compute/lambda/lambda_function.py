@@ -1,12 +1,27 @@
 import json
 import os
+
+import boto3
 import psycopg2
 
-DB_NAME = "appdb"
 DB_HOST = os.environ["DB_HOST"]
 DB_NAME = os.environ["DB_NAME"]
 DB_USER = os.environ["DB_USER"]
-DB_PASSWORD = os.environ["DB_PASSWORD"]
+DB_PASSWORD = os.environ.get("DB_PASSWORD")
+DB_SECRET_ARN = os.environ.get("DB_SECRET_ARN")
+secretsmanager = boto3.client("secretsmanager")
+
+
+def get_db_password():
+    if DB_PASSWORD:
+        return DB_PASSWORD
+
+    if not DB_SECRET_ARN:
+        raise ValueError("Missing DB password configuration")
+
+    response = secretsmanager.get_secret_value(SecretId=DB_SECRET_ARN)
+    secret = json.loads(response["SecretString"])
+    return secret["password"]
 
 
 def get_connection():
@@ -14,7 +29,7 @@ def get_connection():
         host=DB_HOST,
         dbname=DB_NAME,
         user=DB_USER,
-        password=DB_PASSWORD,
+        password=get_db_password(),
         connect_timeout=5
     )
 

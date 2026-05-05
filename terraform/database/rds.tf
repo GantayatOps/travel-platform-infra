@@ -5,10 +5,10 @@ resource "aws_db_instance" "postgres_db" {
   engine         = "postgres"
   instance_class = "db.t4g.micro"
 
-  allocated_storage = 20
-  db_name           = "appdb"
-  username          = "postgres"
-  password          = var.db_password
+  allocated_storage           = 20
+  db_name                     = "appdb"
+  username                    = "postgres"
+  manage_master_user_password = true
 
   publicly_accessible = false
 

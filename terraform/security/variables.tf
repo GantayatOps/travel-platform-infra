@@ -15,3 +15,8 @@ variable "sqs_queue_arn" {
 variable "sns_topic_arn" {
   type = string
 }
+
+variable "db_secret_arn" {
+  description = "Secrets Manager ARN for the RDS master secret"
+  type        = string
+}
