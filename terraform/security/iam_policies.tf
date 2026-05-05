@@ -114,6 +114,8 @@ resource "aws_iam_role_policy_attachment" "sqs_sns_attach" {
 }
 
 resource "aws_iam_policy" "travel_platform_db_secret_access_policy" {
+  count = var.db_secret_arn != null ? 1 : 0
+
   name = "travel_platform_db_secret_access_policy"
 
   policy = jsonencode({
@@ -137,8 +139,10 @@ resource "aws_iam_policy" "travel_platform_db_secret_access_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "ec2_db_secret_attach" {
+  count = var.db_secret_arn != null ? 1 : 0
+
   role       = aws_iam_role.travel_platform_ec2_role.name
-  policy_arn = aws_iam_policy.travel_platform_db_secret_access_policy.arn
+  policy_arn = aws_iam_policy.travel_platform_db_secret_access_policy[0].arn
 }
 
 resource "aws_iam_role_policy_attachment" "lambda_basic_access" {
@@ -158,7 +162,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
+    Statement = concat([
       {
         Effect = "Allow"
         Action = [
@@ -174,7 +178,8 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "sqs:GetQueueAttributes"
         ]
         Resource = var.sqs_queue_arn
-      },
+      }
+      ], var.db_secret_arn != null ? [
       {
         Effect = "Allow"
         Action = [
@@ -182,7 +187,8 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "secretsmanager:DescribeSecret"
         ]
         Resource = var.db_secret_arn
-      },
+      }
+      ] : [], [
       {
         Effect = "Allow"
         Action = [
@@ -192,7 +198,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
         ]
         Resource = "*"
       }
-    ]
+    ])
   })
 }
 

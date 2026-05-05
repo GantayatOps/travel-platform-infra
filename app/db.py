@@ -14,11 +14,8 @@ AWS_REGION = os.getenv("AWS_REGION")
 
 
 def _load_db_password():
-    if DB_PASSWORD:
-        return DB_PASSWORD
-
     if not DB_SECRET_ARN:
-        return None
+        return DB_PASSWORD
 
     client = boto3.client("secretsmanager", region_name=AWS_REGION)
     response = client.get_secret_value(SecretId=DB_SECRET_ARN)

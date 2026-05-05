@@ -31,10 +31,9 @@ AWS_REGION_ENV = os.environ.get("AWS_REGION", REGION)
 
 @lru_cache(maxsize=1)
 def get_db_password():
-    if DB_PASSWORD:
-        return DB_PASSWORD
-
     if not DB_SECRET_ARN:
+        if DB_PASSWORD:
+            return DB_PASSWORD
         raise ValueError("Missing DB password configuration")
 
     secretsmanager = boto3.client("secretsmanager", region_name=AWS_REGION_ENV)

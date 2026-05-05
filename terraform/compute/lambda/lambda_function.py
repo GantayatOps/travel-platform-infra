@@ -13,10 +13,9 @@ secretsmanager = boto3.client("secretsmanager")
 
 
 def get_db_password():
-    if DB_PASSWORD:
-        return DB_PASSWORD
-
     if not DB_SECRET_ARN:
+        if DB_PASSWORD:
+            return DB_PASSWORD
         raise ValueError("Missing DB password configuration")
 
     response = secretsmanager.get_secret_value(SecretId=DB_SECRET_ARN)

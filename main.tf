@@ -7,6 +7,10 @@ terraform {
   }
 }
 
+locals {
+  db_secret_arn = module.database_layer.db_secret_arn
+}
+
 provider "aws" {
   region = var.aws_region
 }
@@ -27,7 +31,7 @@ module "security_layer" {
   # From Messaging Layer
   sqs_queue_arn = module.messaging_layer.sqs_queue_arn
   sns_topic_arn = module.messaging_layer.sns_topic_arn
-  db_secret_arn = module.database_layer.db_secret_arn
+  db_secret_arn = local.db_secret_arn
 }
 
 module "compute_layer" {
@@ -49,7 +53,7 @@ module "compute_layer" {
   sqs_queue_url = module.messaging_layer.sqs_queue_url
 
   db_endpoint   = split(":", module.database_layer.db_endpoint)[0]
-  db_secret_arn = module.database_layer.db_secret_arn
+  db_secret_arn = local.db_secret_arn
 
 }
 module "database_layer" {
@@ -109,5 +113,5 @@ module "lambda_layer" {
 
   # From Database layer
   db_host       = module.database_layer.db_host
-  db_secret_arn = module.database_layer.db_secret_arn
+  db_secret_arn = local.db_secret_arn
 }
