@@ -56,8 +56,22 @@ jobs:
 
       - name: Trigger SSM Deployment
         run: |
+          DEPLOY_SCRIPT_B64="$(base64 < .github/scripts/deploy_app.sh | tr -d '\n')"
+          COMMANDS="$(jq -n \
+            --arg script "$DEPLOY_SCRIPT_B64" \
+            --arg image_tag "$IMAGE_TAG" \
+            '{
+              commands: [
+                "set -e",
+                "printf %s " + ($script | @sh) + " | base64 -d > /home/ec2-user/deploy_app.sh",
+                "chmod +x /home/ec2-user/deploy_app.sh",
+                "/home/ec2-user/deploy_app.sh " + ($image_tag | @sh),
+                "cp /home/ec2-user/deploy_app.sh /home/ec2-user/update_app.sh"
+              ]
+            }')"
+
           aws ssm send-command \
           --document-name "AWS-RunShellScript" \
           --targets "Key=tag:Role,Values=app" \
-          --parameters "commands=[\"/home/ec2-user/update_app.sh $IMAGE_TAG\"]" \
+          --parameters "$COMMANDS" \
           --region ${{ env.AWS_REGION }}
