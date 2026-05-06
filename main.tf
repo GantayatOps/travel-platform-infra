@@ -115,3 +115,12 @@ module "lambda_layer" {
   db_host       = module.database_layer.db_host
   db_secret_arn = local.db_secret_arn
 }
+
+module "monitoring_layer" {
+  source = "./terraform/monitoring"
+
+  lambda_function_name = module.lambda_layer.lambda_function_name
+  sqs_dlq_name         = module.messaging_layer.sqs_dlq_name
+  app_instance_id      = module.compute_layer.app_instance_id
+  alarm_actions        = [module.messaging_layer.sns_topic_arn]
+}
