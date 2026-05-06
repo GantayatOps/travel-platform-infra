@@ -4,6 +4,7 @@ import time
 import os
 from functools import lru_cache
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import URL
 import logging
 from urllib.parse import unquote_plus
 
@@ -41,9 +42,16 @@ def get_db_password():
     secret = json.loads(response["SecretString"])
     return secret["password"]
 
-engine = create_engine(
-    f"postgresql://{DB_USER}:{get_db_password()}@{DB_HOST}:5432/{DB_NAME}"
+DATABASE_URL = URL.create(
+    "postgresql+psycopg2",
+    username=DB_USER,
+    password=get_db_password(),
+    host=DB_HOST,
+    port=5432,
+    database=DB_NAME,
 )
+
+engine = create_engine(DATABASE_URL)
 
 
 def process_message(body):

@@ -3,6 +3,7 @@ import os
 
 import boto3
 from sqlalchemy import create_engine, text
+from sqlalchemy.engine import URL
 from sqlalchemy.orm import sessionmaker
 
 DB_HOST = os.getenv("DB_HOST")
@@ -28,7 +29,14 @@ RESOLVED_DB_PASSWORD = _load_db_password()
 if not all([DB_HOST, DB_NAME, DB_USER, RESOLVED_DB_PASSWORD]):
     raise ValueError("Missing DB environment variables")
 
-DATABASE_URL = f"postgresql://{DB_USER}:{RESOLVED_DB_PASSWORD}@{DB_HOST}:5432/{DB_NAME}"
+DATABASE_URL = URL.create(
+    "postgresql+psycopg2",
+    username=DB_USER,
+    password=RESOLVED_DB_PASSWORD,
+    host=DB_HOST,
+    port=5432,
+    database=DB_NAME,
+)
 
 engine = create_engine(
     DATABASE_URL,
@@ -38,6 +46,7 @@ engine = create_engine(
 )
 
 SessionLocal = sessionmaker(bind=engine)
+
 
 def test_connection():
     with engine.connect() as conn:

@@ -1,0 +1,9 @@
+Alembic migrations for the travel platform app.
+
+Run from the repository root:
+
+    python3 -m alembic -c app/alembic.ini upgrade head
+
+Or from the app directory:
+
+    alembic -c alembic.ini upgrade head

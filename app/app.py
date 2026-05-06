@@ -1,7 +1,6 @@
 from flask import Flask
 
-from db import engine, test_connection
-from models import Base
+from db import test_connection
 from routes.expenses import expenses_bp
 from routes.trips import trips_bp
 from routes.upload import upload_bp
@@ -28,5 +27,4 @@ def health():
 
 
 if __name__ == "__main__":
-    Base.metadata.create_all(bind=engine)
     app.run(host="0.0.0.0", port=3000)
