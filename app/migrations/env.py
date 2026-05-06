@@ -52,9 +52,13 @@ def get_database_url():
     )
 
 
+def get_database_url_string():
+    return get_database_url().render_as_string(hide_password=False)
+
+
 def run_migrations_offline():
     context.configure(
-        url=get_database_url(),
+        url=get_database_url_string(),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -66,7 +70,7 @@ def run_migrations_offline():
 
 def run_migrations_online():
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = str(get_database_url())
+    configuration["sqlalchemy.url"] = get_database_url_string()
 
     connectable = engine_from_config(
         configuration,
