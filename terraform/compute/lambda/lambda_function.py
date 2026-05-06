@@ -126,7 +126,7 @@ def update_photo_record(bucket, key, content_type, size):
 def publish_processed_notification(photo_id, trip_id, bucket, key, content_type, size):
     if not SNS_TOPIC_ARN:
         logger.info("SNS_TOPIC_ARN not configured; skipping notification")
-        return
+        return False
 
     message = {
         "event": "photo_processed",
@@ -138,11 +138,17 @@ def publish_processed_notification(photo_id, trip_id, bucket, key, content_type,
         "size": size,
     }
 
-    sns.publish(
-        TopicArn=SNS_TOPIC_ARN,
-        Subject="Travel photo processed",
-        Message=json.dumps(message, sort_keys=True),
-    )
+    try:
+        sns.publish(
+            TopicArn=SNS_TOPIC_ARN,
+            Subject="Travel photo processed",
+            Message=json.dumps(message, sort_keys=True),
+        )
+    except Exception:
+        logger.exception("Failed to publish SNS notification for photo_id=%s", photo_id)
+        return False
+
+    return True
 
 
 def process_s3_event(s3_event):
@@ -157,8 +163,16 @@ def process_s3_event(s3_event):
         return False
 
     photo_id, trip_id = result
-    publish_processed_notification(photo_id, trip_id, bucket, key, content_type, size)
-    logger.info("Processed photo_id=%s trip_id=%s key=%s", photo_id, trip_id, key)
+    sns_published = publish_processed_notification(
+        photo_id, trip_id, bucket, key, content_type, size
+    )
+    logger.info(
+        "Processed photo_id=%s trip_id=%s key=%s sns_published=%s",
+        photo_id,
+        trip_id,
+        key,
+        sns_published,
+    )
     return True
 
 

@@ -1,4 +1,5 @@
 from datetime import datetime
+from math import isfinite
 
 from flask import Blueprint, jsonify, request
 
@@ -35,6 +36,21 @@ def _parse_datetime(value, field_name):
     raise ValueError(f"{field_name} must be a string")
 
 
+def _parse_positive_amount(value):
+    if isinstance(value, bool):
+        raise ValueError("amount must be a number greater than 0")
+
+    try:
+        amount = float(value)
+    except (TypeError, ValueError):
+        raise ValueError("amount must be a number greater than 0")
+
+    if not isfinite(amount) or amount <= 0:
+        raise ValueError("amount must be a number greater than 0")
+
+    return amount
+
+
 def _create_expense_for_trip(trip_id):
     db = SessionLocal()
     try:
@@ -48,13 +64,14 @@ def _create_expense_for_trip(trip_id):
             return jsonify({"error": "trip not found"}), 404
 
         try:
+            amount = _parse_positive_amount(data.get("amount"))
             spent_at = _parse_datetime(data.get("spent_at"), "spent_at")
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
 
         expense = Expense(
             trip_id=trip_id,
-            amount=data.get("amount"),
+            amount=amount,
             currency=data.get("currency", "INR"),
             category=data.get("category", "general"),
             description=data.get("description"),

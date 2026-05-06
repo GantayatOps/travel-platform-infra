@@ -4,3 +4,4 @@
 *.tfstate.*
 *.tfvars
 lambda_function.zip
+!terraform/compute/lambda/lambda_function.zip

@@ -138,14 +138,21 @@ def presign_photo_upload(trip_id):
         db.close()
 
 
-@upload_bp.route("/get/<filename>", methods=["GET"])
-def get_file(filename):
+@upload_bp.route("/photos/<int:photo_id>/download", methods=["GET"])
+def get_photo_download_url(photo_id):
+    db = SessionLocal()
     try:
+        photo = db.query(Photo).filter(Photo.id == photo_id).first()
+        if not photo:
+            return jsonify({"error": "photo not found"}), 404
+
         url = s3.generate_presigned_url(
             "get_object",
-            Params={"Bucket": BUCKET_NAME, "Key": filename},
+            Params={"Bucket": photo.s3_bucket, "Key": photo.s3_key},
             ExpiresIn=3600,
         )
-        return jsonify({"url": url})
+        return jsonify({"photo": _serialize_photo(photo), "url": url})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    finally:
+        db.close()
