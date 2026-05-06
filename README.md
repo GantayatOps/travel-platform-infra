@@ -218,6 +218,6 @@ http://APP_HOST:3000/dashboard
 ## Current Hardening Notes
 
 - The MVP uses a fixed demo user.
-- Direct `/upload` is legacy; the preferred flow is presigned S3 upload.
-- Worker image resources remain in the repo, but S3 upload processing is currently handled by Lambda.
+- Photo uploads use presigned S3 URLs; Flask does not proxy upload bodies.
+- S3 upload processing is handled by Lambda, not by a long-running worker container.
 - SNS wiring exists for notifications; publishing can be expanded as a follow-up.

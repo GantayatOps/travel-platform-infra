@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 import os
 from uuid import uuid4
 
@@ -38,43 +37,6 @@ def _serialize_photo(photo):
         "processed_at": photo.processed_at.isoformat() if photo.processed_at else None,
         "created_at": photo.created_at.isoformat() if photo.created_at else None,
     }
-
-
-@upload_bp.route("/upload", methods=["POST"])
-def upload_file():
-    db = SessionLocal()
-    file = request.files.get("file")
-
-    if not file:
-        return jsonify({"error": "No file provided"}), 400
-
-    try:
-        s3.upload_fileobj(file, BUCKET_NAME, file.filename)
-
-        new_photo = Photo(
-            trip_id=1,
-            s3_bucket=BUCKET_NAME,
-            s3_key=file.filename,
-            status="pending",
-            content_type=file.mimetype,
-            size=request.content_length,
-            uploaded_at=datetime.now(timezone.utc),
-        )
-
-        db.add(new_photo)
-        db.commit()
-
-        return jsonify(
-            {
-                "message": f"{file.filename} uploaded successfully",
-                "photo": _serialize_photo(new_photo),
-            }
-        )
-    except Exception as e:
-        db.rollback()
-        return jsonify({"error": str(e)}), 500
-    finally:
-        db.close()
 
 
 @upload_bp.route("/trips/<int:trip_id>/photos/presign", methods=["POST"])

@@ -120,6 +120,8 @@ docker run --rm "${docker_env[@]}" "$ECR_URI:$IMAGE_TAG" \
   python -m alembic -c alembic.ini upgrade head
 
 echo "Restarting travel-app..."
+docker stop travel-worker || true
+docker rm travel-worker || true
 docker stop travel-app || true
 docker rm travel-app || true
 

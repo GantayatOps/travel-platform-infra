@@ -16,8 +16,7 @@ env:
   ECR_REGISTRY: 949474133081.dkr.ecr.ap-south-2.amazonaws.com
 
   APP_REPOSITORY: travel-app-repo
-  WORKER_REPOSITORY: travel-worker-repo
-  
+
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
@@ -40,19 +39,15 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t $ECR_REGISTRY/$APP_REPOSITORY:latest ./app
-          docker build -f ./app/Dockerfile.worker -t $ECR_REGISTRY/$WORKER_REPOSITORY:latest ./app
 
       - name: Tag images
         run: |
           docker tag $ECR_REGISTRY/$APP_REPOSITORY:latest $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG
-          docker tag $ECR_REGISTRY/$WORKER_REPOSITORY:latest $ECR_REGISTRY/$WORKER_REPOSITORY:$IMAGE_TAG
 
       - name: Push to ECR
         run: |
           docker push $ECR_REGISTRY/$APP_REPOSITORY:latest
           docker push $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$WORKER_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$WORKER_REPOSITORY:$IMAGE_TAG
 
       - name: Trigger SSM Deployment
         run: |
