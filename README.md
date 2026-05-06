@@ -81,6 +81,20 @@ enable_lambda_trigger = true
 
 Do not store database passwords in `terraform.tfvars`. RDS manages the master password and stores it in Secrets Manager.
 
+## ECR Bootstrap
+
+The app image repository is intentionally managed as a separate Terraform stack under `terraform/ecr`.
+
+This keeps `travel-app-repo` and its image history alive even when the main infrastructure stack is destroyed and recreated. The legacy `travel-worker-repo` is also retained there for historical images, although active upload processing now runs on Lambda. CI/CD expects `travel-app-repo` to exist before app deployment.
+
+```bash
+cd terraform/ecr
+terraform init
+terraform apply
+```
+
+The ECR repositories have `prevent_destroy = true` to block accidental deletion. If the repos already exist but local ECR state is missing, follow `terraform/ecr/README.md` and import them before applying.
+
 ## Infrastructure Deploy
 
 ```bash
@@ -118,6 +132,23 @@ Install app dependencies:
 
 ```bash
 python3 -m pip install -r app/requirements.txt
+```
+
+Run local checks:
+
+```bash
+python3 -m compileall app terraform/compute/lambda/lambda_function.py tests
+python3 -m unittest discover -s tests
+./scripts/check_lambda_package.sh
+terraform fmt -check -recursive
+terraform validate
+terraform -chdir=terraform/ecr validate
+```
+
+Refresh the Lambda deployment package after editing `terraform/compute/lambda/lambda_function.py`:
+
+```bash
+./scripts/package_lambda.sh
 ```
 
 Run Alembic history:
