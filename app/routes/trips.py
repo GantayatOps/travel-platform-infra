@@ -25,6 +25,35 @@ def _parse_datetime(value, field_name):
     raise ValueError(f"{field_name} must be a string")
 
 
+def _parse_trip_name(value):
+    if not isinstance(value, str):
+        raise ValueError("name must be a string")
+
+    name = value.strip()
+    if not name:
+        raise ValueError("name is required")
+
+    if len(name) > 120:
+        raise ValueError("name must be 120 characters or fewer")
+
+    return name
+
+
+def _validate_trip_dates(start_date, end_date):
+    if not start_date or not end_date:
+        return
+
+    start_has_timezone = start_date.tzinfo is not None
+    end_has_timezone = end_date.tzinfo is not None
+    if start_has_timezone != end_has_timezone:
+        raise ValueError(
+            "start_date and end_date must both include timezone offsets or both omit them"
+        )
+
+    if end_date < start_date:
+        raise ValueError("end_date must be after or equal to start_date")
+
+
 def _serialize_trip(trip):
     return {
         "id": trip.id,
@@ -51,21 +80,23 @@ def _ensure_mvp_user(db):
 def create_trip():
     db = SessionLocal()
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True) or {}
 
-        if not data or "name" not in data:
+        if "name" not in data:
             return jsonify({"error": "name is required"}), 400
 
         try:
+            name = _parse_trip_name(data.get("name"))
             start_date = _parse_datetime(data.get("start_date"), "start_date")
             end_date = _parse_datetime(data.get("end_date"), "end_date")
+            _validate_trip_dates(start_date, end_date)
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
 
         _ensure_mvp_user(db)
         trip = Trip(
             user_id=MVP_USER_ID,
-            name=data.get("name"),
+            name=name,
             start_date=start_date,
             end_date=end_date,
         )

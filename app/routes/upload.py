@@ -96,6 +96,16 @@ def presign_photo_upload(trip_id):
         if not trip:
             return jsonify({"error": "trip not found"}), 404
 
+        upload_url = s3.generate_presigned_url(
+            "put_object",
+            Params={
+                "Bucket": BUCKET_NAME,
+                "Key": s3_key,
+                "ContentType": content_type,
+            },
+            ExpiresIn=3600,
+        )
+
         photo = Photo(
             trip_id=trip_id,
             s3_bucket=BUCKET_NAME,
@@ -108,16 +118,6 @@ def presign_photo_upload(trip_id):
         db.add(photo)
         db.commit()
         db.refresh(photo)
-
-        upload_url = s3.generate_presigned_url(
-            "put_object",
-            Params={
-                "Bucket": BUCKET_NAME,
-                "Key": s3_key,
-                "ContentType": content_type,
-            },
-            ExpiresIn=3600,
-        )
 
         return jsonify(
             {

@@ -51,12 +51,32 @@ def _parse_positive_amount(value):
     return amount
 
 
+def _parse_trip_id(value):
+    if isinstance(value, bool):
+        raise ValueError("trip_id must be a positive integer")
+
+    try:
+        trip_id = int(value)
+    except (TypeError, ValueError):
+        raise ValueError("trip_id must be a positive integer")
+
+    if trip_id <= 0:
+        raise ValueError("trip_id must be a positive integer")
+
+    return trip_id
+
+
 def _create_expense_for_trip(trip_id):
     db = SessionLocal()
     try:
-        data = request.get_json()
+        try:
+            trip_id = _parse_trip_id(trip_id)
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
 
-        if not data or "amount" not in data:
+        data = request.get_json(silent=True) or {}
+
+        if "amount" not in data:
             return jsonify({"error": "amount is required"}), 400
 
         trip = db.query(Trip).filter(Trip.id == trip_id).first()
@@ -116,7 +136,7 @@ def list_trip_expenses(trip_id):
 
 @expenses_bp.route("/expenses", methods=["POST"])
 def create_expense():
-    data = request.get_json()
+    data = request.get_json(silent=True) or {}
     if not data or "trip_id" not in data:
         return jsonify({"error": "trip_id is required"}), 400
 
