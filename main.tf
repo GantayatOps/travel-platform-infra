@@ -100,6 +100,7 @@ module "lambda_layer" {
   # From messaging layer
   sqs_queue_arn = module.messaging_layer.sqs_queue_arn
   sns_topic_arn = module.messaging_layer.sns_topic_arn
+  bucket_name   = module.storage_layer.bucket_id
 
   # From Security
   lambda_role_arn = module.security_layer.lambda_role_arn

@@ -20,6 +20,7 @@ resource "aws_lambda_function" "travel_platform_sqs_processor" {
   environment {
     variables = {
       SNS_TOPIC_ARN = var.sns_topic_arn
+      BUCKET_NAME   = var.bucket_name
       DB_HOST       = var.db_host
       DB_NAME       = "appdb"
       DB_USER       = "postgres"

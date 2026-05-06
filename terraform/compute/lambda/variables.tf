@@ -12,6 +12,11 @@ variable "sns_topic_arn" {
   type        = string
 }
 
+variable "bucket_name" {
+  description = "S3 bucket name expected in upload events"
+  type        = string
+}
+
 variable "lambda_role_arn" {
   description = "IAM role ARN assumed by the Lambda function to access AWS services like SQS, SNS, and CloudWatch"
   type        = string

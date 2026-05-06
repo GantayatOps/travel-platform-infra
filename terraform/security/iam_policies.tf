@@ -178,6 +178,13 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "sqs:GetQueueAttributes"
         ]
         Resource = var.sqs_queue_arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject"
+        ]
+        Resource = "${var.bucket_arn}/*"
       }
       ], var.db_secret_arn != null ? [
       {

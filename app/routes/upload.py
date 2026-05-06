@@ -12,6 +12,12 @@ upload_bp = Blueprint("upload", __name__)
 
 REGION = "ap-south-2"
 BUCKET_NAME = os.getenv("BUCKET_NAME", "travel-platform-assets-952341")
+MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))
+ALLOWED_CONTENT_TYPES = {
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+}
 
 s3 = boto3.client("s3", region_name=REGION)
 
@@ -19,9 +25,39 @@ s3 = boto3.client("s3", region_name=REGION)
 def _photo_key(trip_id, filename):
     safe_filename = secure_filename(filename or "")
     if not safe_filename:
-        safe_filename = "upload"
+        raise ValueError("filename must include at least one safe character")
+
+    if len(safe_filename) > 255:
+        raise ValueError("filename must be 255 characters or fewer")
 
     return f"trips/{trip_id}/photos/{uuid4().hex}-{safe_filename}"
+
+
+def _validate_content_type(content_type):
+    normalized = (content_type or "").split(";", 1)[0].strip().lower()
+    if normalized not in ALLOWED_CONTENT_TYPES:
+        allowed = ", ".join(sorted(ALLOWED_CONTENT_TYPES))
+        raise ValueError(f"content_type must be one of: {allowed}")
+
+    return normalized
+
+
+def _validate_file_size(value):
+    if value in (None, ""):
+        raise ValueError("file_size is required")
+
+    try:
+        size = int(value)
+    except (TypeError, ValueError):
+        raise ValueError("file_size must be an integer")
+
+    if size <= 0:
+        raise ValueError("file_size must be greater than 0")
+
+    if size > MAX_UPLOAD_BYTES:
+        raise ValueError(f"file_size must be less than or equal to {MAX_UPLOAD_BYTES}")
+
+    return size
 
 
 def _serialize_photo(photo):
@@ -45,22 +81,28 @@ def presign_photo_upload(trip_id):
     try:
         data = request.get_json(silent=True) or {}
         filename = data.get("filename")
-        content_type = data.get("content_type", "application/octet-stream")
 
         if not filename:
             return jsonify({"error": "filename is required"}), 400
+
+        try:
+            content_type = _validate_content_type(data.get("content_type"))
+            file_size = _validate_file_size(data.get("file_size"))
+            s3_key = _photo_key(trip_id, filename)
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
 
         trip = db.query(Trip).filter(Trip.id == trip_id).first()
         if not trip:
             return jsonify({"error": "trip not found"}), 404
 
-        s3_key = _photo_key(trip_id, filename)
         photo = Photo(
             trip_id=trip_id,
             s3_bucket=BUCKET_NAME,
             s3_key=s3_key,
             status="pending",
             content_type=content_type,
+            size=file_size,
         )
 
         db.add(photo)
@@ -83,6 +125,7 @@ def presign_photo_upload(trip_id):
                 "upload_url": upload_url,
                 "s3_key": s3_key,
                 "method": "PUT",
+                "max_upload_bytes": MAX_UPLOAD_BYTES,
                 "headers": {
                     "Content-Type": content_type,
                 },

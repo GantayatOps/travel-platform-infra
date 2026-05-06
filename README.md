@@ -177,7 +177,8 @@ curl -X POST http://APP_HOST:3000/trips/1/photos/presign \
   -H "Content-Type: application/json" \
   -d '{
     "filename": "boarding-pass.jpg",
-    "content_type": "image/jpeg"
+    "content_type": "image/jpeg",
+    "file_size": 524288
   }'
 ```
 
@@ -220,4 +221,4 @@ http://APP_HOST:3000/dashboard
 - The MVP uses a fixed demo user.
 - Photo uploads use presigned S3 URLs; Flask does not proxy upload bodies.
 - S3 upload processing is handled by Lambda, not by a long-running worker container.
-- SNS wiring exists for notifications; publishing can be expanded as a follow-up.
+- Lambda publishes SNS notifications after successful photo processing.
