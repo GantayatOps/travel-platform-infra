@@ -28,6 +28,17 @@ echo "Pulling latest images..."
 docker pull $ECR_URI:latest
 # docker pull $WORKER_ECR_URI:latest
 
+echo "Running database migrations..."
+
+docker run --rm \
+  -e AWS_REGION=$REGION \
+  -e DB_HOST=${db_endpoint} \
+  -e DB_NAME=appdb \
+  -e DB_USER=postgres \
+  -e DB_SECRET_ARN=${db_secret_arn} \
+  $ECR_URI:latest \
+  python -m alembic -c alembic.ini upgrade head
+
 echo "Cleaning up old containers (if any)..."
 
 # Docker Cleanup
@@ -92,6 +103,17 @@ aws ecr get-login-password --region $REGION | \
 docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
 
 docker pull $ECR_URI:$IMAGE_TAG
+
+echo "Running database migrations..."
+
+docker run --rm \
+  -e AWS_REGION=$REGION \
+  -e DB_HOST=${db_endpoint} \
+  -e DB_NAME=appdb \
+  -e DB_USER=postgres \
+  -e DB_SECRET_ARN=${db_secret_arn} \
+  $ECR_URI:$IMAGE_TAG \
+  python -m alembic -c alembic.ini upgrade head
 
 docker stop travel-app || true
 docker rm travel-app || true
