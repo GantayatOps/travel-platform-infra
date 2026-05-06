@@ -10,8 +10,9 @@ from models import Photo, Trip
 
 upload_bp = Blueprint("upload", __name__)
 
-REGION = "ap-south-2"
+REGION = os.getenv("AWS_REGION", "ap-south-2")
 BUCKET_NAME = os.getenv("BUCKET_NAME", "travel-platform-assets-952341")
+S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL", f"https://s3.{REGION}.amazonaws.com")
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))
 ALLOWED_CONTENT_TYPES = {
     "image/jpeg",
@@ -19,7 +20,16 @@ ALLOWED_CONTENT_TYPES = {
     "image/webp",
 }
 
-s3 = boto3.client("s3", region_name=REGION)
+
+def create_s3_client():
+    return boto3.client(
+        "s3",
+        region_name=REGION,
+        endpoint_url=S3_ENDPOINT_URL,
+    )
+
+
+s3 = create_s3_client()
 
 
 def _photo_key(trip_id, filename):

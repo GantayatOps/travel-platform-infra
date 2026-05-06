@@ -24,6 +24,12 @@ from routes import expenses, trips, upload  # noqa: E402
 
 
 class AppValidationTests(unittest.TestCase):
+    def test_s3_client_uses_regional_endpoint_for_presigned_urls(self):
+        self.assertEqual(
+            upload.s3.meta.endpoint_url,
+            "https://s3.ap-south-2.amazonaws.com",
+        )
+
     def test_trip_name_validation(self):
         self.assertEqual(trips._parse_trip_name("  Sydney  "), "Sydney")
 
