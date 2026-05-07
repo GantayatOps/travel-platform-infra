@@ -239,6 +239,20 @@ http://APP_HOST:3000/dashboard
 8. Wait for S3 to SQS to Lambda processing.
 9. Open `/dashboard` and verify the trip, expense, and photo status.
 
+## Demo Evidence
+
+Latest live verification: `2026-05-07T15:11Z`.
+
+- Created demo trip `Portfolio Demo 20260507151118` with `trip_id=4`.
+- Created expense `expense_id=4`; trip total returned `47.25`.
+- Generated a regional S3 presigned upload URL and uploaded a 64-byte `image/png`.
+- Lambda processed `photo_id=4` and updated the photo status to `processed`.
+- CloudWatch Lambda log showed `sns_published=True`.
+- Dashboard rendered and contained the demo trip.
+- Photo download endpoint returned a regional S3 presigned URL.
+- SQS dead-letter queue visible, delayed, and in-flight message counts were all `0`.
+- SNS email subscription was confirmed with `PendingConfirmation=false`.
+
 ## Operations
 
 - Flask health check: `GET /healthz`
