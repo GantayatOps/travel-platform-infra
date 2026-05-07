@@ -27,6 +27,7 @@ docker pull $ECR_URI:latest
 
 echo "Running database migrations..."
 
+# Bootstrap migrations run before the app starts so first boot never serves against an old schema.
 docker run --rm \
   -e AWS_REGION=$REGION \
   -e DB_HOST=${db_endpoint} \
@@ -87,6 +88,7 @@ docker pull $ECR_URI:$IMAGE_TAG
 
 echo "Running database migrations..."
 
+# Keep deploys fail-closed: if the schema migration fails, the running app container is not replaced.
 docker run --rm \
   -e AWS_REGION=$REGION \
   -e DB_HOST=${db_endpoint} \

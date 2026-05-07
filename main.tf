@@ -8,6 +8,7 @@ terraform {
 }
 
 locals {
+  # Provider default tags keep ownership and environment metadata consistent across modules.
   common_tags = {
     Project     = "travel-platform"
     Environment = "dev"
@@ -98,6 +99,7 @@ module "notification_layer" {
   bucket_id     = module.storage_layer.bucket_id
   sqs_queue_arn = module.messaging_layer.sqs_queue_arn
 
+  # S3 validates the destination queue policy when notification configuration is created.
   depends_on = [module.messaging_layer]
 }
 

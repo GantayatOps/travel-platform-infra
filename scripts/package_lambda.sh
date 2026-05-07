@@ -11,6 +11,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Lambda runs on arm64 Python 3.10, so build binary dependencies for that runtime instead of the local machine.
 python3 -m pip install \
   --target "$BUILD_DIR" \
   --platform manylinux2014_aarch64 \
@@ -22,6 +23,7 @@ python3 -m pip install \
 cp "$LAMBDA_DIR/lambda_function.py" "$BUILD_DIR/lambda_function.py"
 find "$BUILD_DIR" -type d -name "__pycache__" -prune -exec rm -rf {} +
 
+# Write files in sorted order with a fixed timestamp so Terraform only sees real package changes.
 python3 - "$BUILD_DIR" "$ZIP_PATH" <<'PY'
 import os
 import stat

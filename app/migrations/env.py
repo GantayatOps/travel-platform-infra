@@ -53,6 +53,7 @@ def get_database_url():
 
 
 def get_database_url_string():
+    # Alembic needs the real password; str(URL) masks it as "***" and breaks deploys.
     return get_database_url().render_as_string(hide_password=False)
 
 

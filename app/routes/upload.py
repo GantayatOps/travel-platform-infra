@@ -12,6 +12,7 @@ upload_bp = Blueprint("upload", __name__)
 
 REGION = os.getenv("AWS_REGION", "ap-south-2")
 BUCKET_NAME = os.getenv("BUCKET_NAME", "travel-platform-assets-952341")
+# Presigned URLs must use the bucket's regional endpoint; the global endpoint fails for ap-south-2 buckets.
 S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL", f"https://s3.{REGION}.amazonaws.com")
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))
 ALLOWED_CONTENT_TYPES = {
@@ -116,6 +117,7 @@ def presign_photo_upload(trip_id):
             ExpiresIn=3600,
         )
 
+        # Create the DB row only after signing succeeds so failed presign attempts do not leave orphaned pending photos.
         photo = Photo(
             trip_id=trip_id,
             s3_bucket=BUCKET_NAME,

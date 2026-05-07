@@ -17,6 +17,7 @@ fi
 container_env() {
   local key=$1
 
+  # Prefer values from the currently running container so deploys survive user-data drift.
   docker inspect travel-app \
     --format '{{range .Config.Env}}{{println .}}{{end}}' 2>/dev/null |
     awk -F= -v key="$key" '$1 == key { sub(/^[^=]*=/, ""); print; exit }' ||
@@ -73,6 +74,7 @@ resolve_env() {
   printf "%s" "$value"
 }
 
+# Resolve runtime configuration from explicit CI/SSM env, then the live container, then the previous deploy script.
 DB_HOST=$(resolve_env DB_HOST)
 DB_NAME=$(resolve_env DB_NAME)
 DB_USER=$(resolve_env DB_USER)
@@ -116,6 +118,7 @@ aws ecr get-login-password --region "$REGION" |
 docker pull "$ECR_URI:$IMAGE_TAG"
 
 echo "Running database migrations..."
+# Run migrations before replacing the app container so a failed migration leaves the current app serving traffic.
 docker run --rm "${docker_env[@]}" "$ECR_URI:$IMAGE_TAG" \
   python -m alembic -c alembic.ini upgrade head
 

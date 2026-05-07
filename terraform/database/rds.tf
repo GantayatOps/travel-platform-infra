@@ -8,7 +8,7 @@ resource "aws_db_instance" "postgres_db" {
   allocated_storage = 20
   db_name           = "appdb"
   username          = "postgres"
-  # RDS manages the master password in Secrets Manager.
+  # RDS manages and rotates the master password in Secrets Manager; Terraform never stores the plaintext.
   manage_master_user_password = true
 
   publicly_accessible = false

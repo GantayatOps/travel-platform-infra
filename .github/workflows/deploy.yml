@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  id-token: write   # This is required for requesting the JWT
-  contents: read    # This is required for actions/checkout
+  id-token: write   # OIDC lets GitHub assume the deploy role without long-lived AWS keys.
+  contents: read    # Required for actions/checkout.
 
 env:
   AWS_REGION: ap-south-2
@@ -114,6 +114,7 @@ jobs:
 
       - name: Trigger SSM Deployment
         run: |
+          # Ship the repo version of the deploy script to EC2 so CI remains the deployment source of truth.
           DEPLOY_SCRIPT_B64="$(base64 < .github/scripts/deploy_app.sh | tr -d '\n')"
           COMMANDS="$(jq -n \
             --arg script "$DEPLOY_SCRIPT_B64" \

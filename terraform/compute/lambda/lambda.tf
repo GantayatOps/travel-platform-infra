@@ -12,6 +12,7 @@ resource "aws_lambda_function" "travel_platform_sqs_processor" {
 
   architectures = ["arm64"]
 
+  # The zip is built by scripts/package_lambda.sh and checked in so Terraform can run from clean CI workspaces.
   filename         = "${path.module}/lambda_function.zip"
   source_code_hash = filebase64sha256("${path.module}/lambda_function.zip")
 

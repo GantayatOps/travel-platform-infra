@@ -32,6 +32,7 @@ sns = boto3.client("sns", region_name=AWS_REGION)
 
 @lru_cache(maxsize=1)
 def get_db_password():
+    # Cache the secret per warm Lambda runtime to avoid a Secrets Manager call for every SQS record.
     if not DB_SECRET_ARN:
         if DB_PASSWORD:
             return DB_PASSWORD
@@ -64,6 +65,7 @@ def parse_s3_record(s3_event):
     except (KeyError, TypeError, ValueError) as exc:
         raise ValueError("Invalid S3 event record shape") from exc
 
+    # S3 event keys are URL encoded; decode before matching the DB key written by the app.
     key = unquote_plus(raw_key)
 
     if bucket != BUCKET_NAME:
@@ -102,6 +104,7 @@ def inspect_s3_object(bucket, key, event_size):
 def update_photo_record(bucket, key, content_type, size):
     with get_connection() as conn:
         with conn.cursor() as cur:
+            # Keep processing idempotent: an SQS retry should not republish or mutate already processed photos.
             cur.execute(
                 """
                 UPDATE photos
@@ -145,6 +148,7 @@ def publish_processed_notification(photo_id, trip_id, bucket, key, content_type,
             Message=json.dumps(message, sort_keys=True),
         )
     except Exception:
+        # DB processing is the source of truth; notification delivery should not force SQS retries.
         logger.exception("Failed to publish SNS notification for photo_id=%s", photo_id)
         return False
 

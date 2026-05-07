@@ -1,4 +1,5 @@
-# Access S3 via S3 Gateway Endpoint
+# Private app and Lambda subnets do not use NAT; AWS service access is provided through VPC endpoints.
+# S3 uses a gateway endpoint attached to the private route table.
 resource "aws_vpc_endpoint" "s3_endpoint" {
   vpc_id            = aws_vpc.travel_platform_vpc.id
   service_name      = "com.amazonaws.ap-south-2.s3"
@@ -13,7 +14,7 @@ resource "aws_vpc_endpoint" "s3_endpoint" {
   }
 }
 
-# Security group for VPC Endpoints
+# Interface endpoints share one HTTPS-only security group scoped to the VPC CIDR.
 resource "aws_security_group" "vpc_endpoint_sg" {
   name   = "vpc-endpoint-sg"
   vpc_id = aws_vpc.travel_platform_vpc.id

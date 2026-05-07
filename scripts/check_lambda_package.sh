@@ -19,6 +19,7 @@ if not zip_path.exists():
 
 try:
     with ZipFile(zip_path) as package:
+        # CI relies on this guard because Terraform deploys the checked-in zip, not a freshly built artifact.
         names = set(package.namelist())
         if "lambda_function.py" not in names:
             raise SystemExit("lambda_function.zip is missing lambda_function.py")
