@@ -4,6 +4,17 @@ on:
   push:
     branches:
       - main
+    paths:
+      - ".github/scripts/deploy_app.sh"
+      - ".github/workflows/deploy.yml"
+      - ".terraform.lock.hcl"
+      - "app/**"
+      - "main.tf"
+      - "outputs.tf"
+      - "scripts/check_lambda_package.sh"
+      - "scripts/package_lambda.sh"
+      - "terraform/**"
+      - "variables.tf"
   workflow_dispatch:
 
 permissions:
