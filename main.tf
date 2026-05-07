@@ -48,34 +48,35 @@ module "security_layer" {
 module "compute_layer" {
   source = "./terraform/compute"
 
-  # From network layer
+  # Network inputs
   public_subnet_id  = module.network_layer.public_subnet_id
   private_subnet_id = module.network_layer.private_subnet_id
 
-  # From security layer
+  # Security inputs
   bastion_sg_id         = module.security_layer.bastion_sg_id
   app_sg_id             = module.security_layer.app_sg_id
   instance_profile_name = module.security_layer.ec2_instance_profile_name
 
-  # Key-Value Pair stored in AWS
+  # Existing EC2 key pair name
   key_name = var.key_name
 
-  #From messaging layer
+  # Messaging input
   sqs_queue_url = module.messaging_layer.sqs_queue_url
 
   db_endpoint   = split(":", module.database_layer.db_endpoint)[0]
   db_secret_arn = local.db_secret_arn
 
 }
+
 module "database_layer" {
   source = "./terraform/database"
 
-  # From Network layer
+  # Network inputs
   private_subnet_ids = [
     module.network_layer.private_subnet_id,
     module.network_layer.private_subnet_id_2
   ]
-  # From security layer
+  # Security input
   rds_sg_id = module.security_layer.rds_sg_id
 
 }
@@ -106,25 +107,25 @@ module "notification_layer" {
 module "lambda_layer" {
   source = "./terraform/compute/lambda"
 
-  # From tfvars
+  # Root input
   enable_lambda_trigger = var.enable_lambda_trigger
 
-  # From messaging layer
+  # Messaging inputs
   sqs_queue_arn = module.messaging_layer.sqs_queue_arn
   sns_topic_arn = module.messaging_layer.sns_topic_arn
   bucket_name   = module.storage_layer.bucket_id
 
-  # From Security
+  # Security inputs
   lambda_role_arn = module.security_layer.lambda_role_arn
   lambda_sg_id    = module.security_layer.lambda_sg_id
 
-  # From Network layer
+  # Network inputs
   private_subnet_ids = [
     module.network_layer.private_subnet_id,
     module.network_layer.private_subnet_id_2
   ]
 
-  # From Database layer
+  # Database inputs
   db_host       = module.database_layer.db_host
   db_secret_arn = local.db_secret_arn
 }

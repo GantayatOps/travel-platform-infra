@@ -126,7 +126,7 @@ Deployment is performed with SSM Run Command:
 
 This avoids stale EC2-local deployment scripts and keeps schema updates tied to app deploys.
 
-## Local App Commands
+## Local Development Commands
 
 Install app dependencies:
 
@@ -236,7 +236,7 @@ http://APP_HOST:3000/dashboard
 5. Add an expense with `POST /trips/{trip_id}/expenses`.
 6. Request a presigned URL with `POST /trips/{trip_id}/photos/presign`.
 7. Upload a file to the returned S3 URL.
-8. Wait for S3 -> SQS -> Lambda processing.
+8. Wait for S3 to SQS to Lambda processing.
 9. Open `/dashboard` and verify the trip, expense, and photo status.
 
 ## Operations

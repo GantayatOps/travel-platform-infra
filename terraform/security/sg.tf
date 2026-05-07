@@ -1,4 +1,4 @@
-# Bastion Host SG
+# Bastion host security group
 resource "aws_security_group" "travel_platform_bastion_sg" {
   name   = "bastion-sg"
   vpc_id = var.vpc_id
@@ -22,23 +22,21 @@ resource "aws_security_group" "travel_platform_bastion_sg" {
   }
 }
 
-# App SG
+# Application security group
 resource "aws_security_group" "travel_platform_app_sg" {
   name   = "app-sg"
   vpc_id = var.vpc_id
 
-  # Allow SSH ONLY from bastion_sg
   ingress {
-    description     = "Allow SSH only from Bastion SG"
+    description     = "Allow SSH only from the bastion security group"
     from_port       = 22
     to_port         = 22
     protocol        = "tcp"
     security_groups = [aws_security_group.travel_platform_bastion_sg.id]
   }
 
-  # SG for port 3000
   ingress {
-    description = "App port from VPC"
+    description = "Allow app port from inside the VPC"
     from_port   = 3000
     to_port     = 3000
     protocol    = "tcp"
@@ -57,13 +55,13 @@ resource "aws_security_group" "travel_platform_app_sg" {
   }
 }
 
-# RDS SG
+# RDS security group
 resource "aws_security_group" "travel_platform_rds_sg" {
   name   = "rds-sg"
   vpc_id = var.vpc_id
 
   ingress {
-    description     = "Allow PostgreSQL from app and lambda SG"
+    description     = "Allow PostgreSQL from app and Lambda security groups"
     from_port       = 5432
     to_port         = 5432
     protocol        = "tcp"
@@ -87,8 +85,7 @@ resource "aws_security_group" "lambda_sg" {
   description = "Lambda SG"
   vpc_id      = var.vpc_id
 
-  # No ingress needed
-
+  # Lambda initiates outbound connections only.
   egress {
     from_port   = 0
     to_port     = 0

@@ -151,7 +151,7 @@ resource "aws_iam_role_policy_attachment" "lambda_vpc_access" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
 }
 
-# Inline Policy, Maybe later change to Policy + Attachment?
+# Inline policy keeps Lambda queue, notification, S3, and secret permissions close to the role.
 resource "aws_iam_role_policy" "lambda_policy" {
   name = "lambda_sqs_sns_policy"
   role = aws_iam_role.travel_platform_lambda_role.id
