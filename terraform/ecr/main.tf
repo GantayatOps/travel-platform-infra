@@ -12,7 +12,10 @@ resource "aws_ecr_repository" "app_repo" {
   }
 
   tags = {
-    Name = "travel-app-ecr"
+    Name        = "travel-platform-app-ecr"
+    Project     = "travel-platform"
+    Environment = "dev"
+    ManagedBy   = "terraform"
   }
 }
 
@@ -52,7 +55,10 @@ resource "aws_ecr_repository" "worker_repo" {
   }
 
   tags = {
-    Name = "travel-worker-ecr"
+    Name        = "travel-platform-worker-ecr"
+    Project     = "travel-platform"
+    Environment = "dev"
+    ManagedBy   = "terraform"
   }
 }
 

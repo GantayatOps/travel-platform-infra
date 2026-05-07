@@ -1,10 +1,3 @@
-locals {
-  common_tags = {
-    Project = "travel-platform"
-    Env     = "dev"
-  }
-}
-
 resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   alarm_name          = "travel-platform-lambda-errors"
   alarm_description   = "Lambda upload processor has one or more errors."
@@ -24,7 +17,9 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
     FunctionName = var.lambda_function_name
   }
 
-  tags = local.common_tags
+  tags = {
+    Name = "travel-platform-lambda-errors"
+  }
 }
 
 resource "aws_cloudwatch_metric_alarm" "sqs_dlq_visible_messages" {
@@ -46,7 +41,9 @@ resource "aws_cloudwatch_metric_alarm" "sqs_dlq_visible_messages" {
     QueueName = var.sqs_dlq_name
   }
 
-  tags = local.common_tags
+  tags = {
+    Name = "travel-platform-sqs-dlq-visible-messages"
+  }
 }
 
 resource "aws_cloudwatch_metric_alarm" "app_instance_status_check" {
@@ -68,5 +65,7 @@ resource "aws_cloudwatch_metric_alarm" "app_instance_status_check" {
     InstanceId = var.app_instance_id
   }
 
-  tags = local.common_tags
+  tags = {
+    Name = "travel-platform-app-instance-status-check"
+  }
 }

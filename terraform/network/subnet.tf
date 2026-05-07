@@ -7,7 +7,7 @@ resource "aws_subnet" "public_subnet" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "public-subnet"
+    Name = "travel-platform-public-subnet"
   }
 }
 
@@ -20,7 +20,7 @@ resource "aws_subnet" "private_subnet_1" {
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "private-subnet-1"
+    Name = "travel-platform-private-subnet-1"
   }
 }
 
@@ -33,6 +33,6 @@ resource "aws_subnet" "private_subnet_2" {
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "private-subnet-2"
+    Name = "travel-platform-private-subnet-2"
   }
 }

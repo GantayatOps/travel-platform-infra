@@ -1,5 +1,9 @@
 resource "aws_sns_topic" "travel_platform_upload_topic" {
   name = "travel_platform_upload_topic"
+
+  tags = {
+    Name = "travel-platform-upload-topic"
+  }
 }
 
 resource "aws_sns_topic_subscription" "email_sub" {

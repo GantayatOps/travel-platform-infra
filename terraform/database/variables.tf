@@ -1,8 +1,9 @@
 variable "private_subnet_ids" {
-  type = list(string)
+  description = "Private subnet IDs used by the RDS subnet group."
+  type        = list(string)
 }
 
 variable "rds_sg_id" {
-  description = "RDS SG ID"
+  description = "Security group ID attached to the RDS PostgreSQL instance."
   type        = string
 }

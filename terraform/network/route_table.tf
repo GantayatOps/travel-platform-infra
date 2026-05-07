@@ -8,7 +8,7 @@ resource "aws_route_table" "public_rt" {
   }
 
   tags = {
-    Name = "public-route-table"
+    Name = "travel-platform-public-route-table"
   }
 }
 
@@ -23,7 +23,7 @@ resource "aws_route_table" "private_rt" {
   vpc_id = aws_vpc.travel_platform_vpc.id
 
   tags = {
-    Name = "private-route-table"
+    Name = "travel-platform-private-route-table"
   }
 }
 

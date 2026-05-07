@@ -17,8 +17,7 @@ resource "aws_iam_role" "travel_platform_ec2_role" {
   })
 
   tags = {
-    Project = "travel-platform"
-    Env     = "dev"
+    Name = "travel-platform-ec2-role"
   }
 }
 
@@ -40,8 +39,7 @@ resource "aws_iam_role" "travel_platform_lambda_role" {
   })
 
   tags = {
-    Project = "travel-platform"
-    Env     = "dev"
+    Name = "travel-platform-lambda-role"
   }
 }
 
@@ -68,7 +66,6 @@ resource "aws_iam_role" "travel_platform_github_role" {
   })
 
   tags = {
-    Project = "travel-platform"
-    Env     = "dev"
+    Name = "travel-platform-github-role"
   }
 }

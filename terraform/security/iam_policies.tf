@@ -26,8 +26,7 @@ resource "aws_iam_policy" "travel_platform_s3_access_policy" {
   })
 
   tags = {
-    Project = "travel-platform"
-    Env     = "dev"
+    Name = "travel-platform-s3-access-policy"
   }
 }
 
@@ -62,8 +61,7 @@ resource "aws_iam_policy" "travel_platform_ecr_pull_policy" {
   })
 
   tags = {
-    Project = "travel-platform"
-    Env     = "dev"
+    Name = "travel-platform-ecr-pull-policy"
   }
 }
 
@@ -102,8 +100,7 @@ resource "aws_iam_policy" "travel_platform_messaging_policy" {
   })
 
   tags = {
-    Project = "travel-platform"
-    Env     = "dev"
+    Name = "travel-platform-messaging-policy"
   }
 }
 
@@ -133,8 +130,7 @@ resource "aws_iam_policy" "travel_platform_db_secret_access_policy" {
   })
 
   tags = {
-    Project = "travel-platform"
-    Env     = "dev"
+    Name = "travel-platform-db-secret-access-policy"
   }
 }
 
@@ -232,8 +228,7 @@ resource "aws_iam_policy" "travel_platform_ecr_push_policy" {
   })
 
   tags = {
-    Project = "travel-platform"
-    Env     = "dev"
+    Name = "travel-platform-ecr-push-policy"
   }
 }
 
@@ -263,6 +258,10 @@ resource "aws_iam_policy" "travel_platform_ssm_send_command" {
       }
     ]
   })
+
+  tags = {
+    Name = "travel-platform-ssm-send-command-policy"
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "github_ssm_attach" {

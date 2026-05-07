@@ -3,6 +3,6 @@ resource "aws_s3_bucket" "app_bucket" {
   bucket = var.bucket_name
 
   tags = {
-    Name = "App Storage"
+    Name = var.bucket_name
   }
 }

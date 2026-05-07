@@ -8,11 +8,21 @@ terraform {
 }
 
 locals {
+  common_tags = {
+    Project     = "travel-platform"
+    Environment = "dev"
+    ManagedBy   = "terraform"
+  }
+
   db_secret_arn = module.database_layer.db_secret_arn
 }
 
 provider "aws" {
   region = var.aws_region
+
+  default_tags {
+    tags = local.common_tags
+  }
 }
 
 module "network_layer" {

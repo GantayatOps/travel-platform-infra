@@ -17,6 +17,10 @@ resource "aws_lambda_function" "travel_platform_sqs_processor" {
 
   timeout = 10
 
+  tags = {
+    Name = "travel-platform-sqs-processor"
+  }
+
   environment {
     variables = {
       SNS_TOPIC_ARN = var.sns_topic_arn

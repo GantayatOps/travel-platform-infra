@@ -7,6 +7,10 @@ resource "aws_vpc_endpoint" "s3_endpoint" {
   route_table_ids = [
     aws_route_table.private_rt.id
   ]
+
+  tags = {
+    Name = "travel-platform-s3-endpoint"
+  }
 }
 
 # Security group for VPC Endpoints
@@ -29,6 +33,10 @@ resource "aws_security_group" "vpc_endpoint_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  tags = {
+    Name = "travel-platform-vpc-endpoint-sg"
+  }
 }
 
 # ECR API Endpoint (Authentication)
@@ -42,6 +50,10 @@ resource "aws_vpc_endpoint" "ecr_api" {
   security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
 
   private_dns_enabled = true
+
+  tags = {
+    Name = "travel-platform-ecr-api-endpoint"
+  }
 }
 
 # ECR DKR Endpoint (Docker Pull)
@@ -55,6 +67,10 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
 
   private_dns_enabled = true
+
+  tags = {
+    Name = "travel-platform-ecr-dkr-endpoint"
+  }
 }
 
 # SQS Endpoint (Messaging Queue)
@@ -71,6 +87,10 @@ resource "aws_vpc_endpoint" "sqs" {
   security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
 
   private_dns_enabled = true
+
+  tags = {
+    Name = "travel-platform-sqs-endpoint"
+  }
 }
 
 # SNS Endpoint (Notifications)
@@ -87,6 +107,10 @@ resource "aws_vpc_endpoint" "sns" {
   security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
 
   private_dns_enabled = true
+
+  tags = {
+    Name = "travel-platform-sns-endpoint"
+  }
 }
 
 resource "aws_vpc_endpoint" "secretsmanager" {
@@ -102,6 +126,10 @@ resource "aws_vpc_endpoint" "secretsmanager" {
   security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
 
   private_dns_enabled = true
+
+  tags = {
+    Name = "travel-platform-secretsmanager-endpoint"
+  }
 }
 
 resource "aws_vpc_endpoint" "ssm" {
@@ -115,6 +143,10 @@ resource "aws_vpc_endpoint" "ssm" {
   security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
 
   private_dns_enabled = true
+
+  tags = {
+    Name = "travel-platform-ssm-endpoint"
+  }
 }
 
 resource "aws_vpc_endpoint" "ssmmessages" {
@@ -128,6 +160,10 @@ resource "aws_vpc_endpoint" "ssmmessages" {
   security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
 
   private_dns_enabled = true
+
+  tags = {
+    Name = "travel-platform-ssmmessages-endpoint"
+  }
 }
 
 resource "aws_vpc_endpoint" "ec2messages" {
@@ -141,4 +177,8 @@ resource "aws_vpc_endpoint" "ec2messages" {
   security_group_ids = [aws_security_group.vpc_endpoint_sg.id]
 
   private_dns_enabled = true
+
+  tags = {
+    Name = "travel-platform-ec2messages-endpoint"
+  }
 }

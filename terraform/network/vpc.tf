@@ -6,7 +6,6 @@ resource "aws_vpc" "travel_platform_vpc" {
   enable_dns_hostnames = true
 
   tags = {
-    Name        = "travel-platform-vpc"
-    Environment = "learning"
+    Name = "travel-platform-vpc"
   }
 }

@@ -9,9 +9,7 @@ resource "aws_sqs_queue" "travel_platform_upload_queue" {
   })
 
   tags = {
-    Name    = "travel_platform_upload_queue"
-    Project = "travel-platform"
-    Env     = "dev"
+    Name = "travel-platform-upload-queue"
   }
 }
 
@@ -21,9 +19,7 @@ resource "aws_sqs_queue" "travel_platform_dlq" {
   message_retention_seconds = 1209600 # 14 days
 
   tags = {
-    Name    = "travel_platform_dlq"
-    Project = "travel-platform"
-    Env     = "dev"
+    Name = "travel-platform-dlq"
   }
 }
 

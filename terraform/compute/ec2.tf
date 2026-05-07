@@ -12,11 +12,9 @@ resource "aws_instance" "bastion_host" {
   key_name = var.key_name
 
   tags = {
-    Name        = "travel_platform_bastion_host"
-    Project     = "travel_platform"
-    Role        = "bastion"
-    Environment = "dev"
-    Access      = "ssh"
+    Name   = "travel-platform-bastion-host"
+    Role   = "bastion"
+    Access = "ssh"
   }
 }
 
@@ -43,9 +41,7 @@ resource "aws_instance" "app_server" {
   })
 
   tags = {
-    Name        = "travel_platform_app_server"
-    Project     = "travel_platform"
-    Role        = "app"
-    Environment = "dev"
+    Name = "travel-platform-app-server"
+    Role = "app"
   }
 }
