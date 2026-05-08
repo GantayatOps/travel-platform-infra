@@ -1,10 +1,12 @@
-from datetime import datetime
-from math import isfinite
-
 from flask import Blueprint, jsonify, request
 
 from db import SessionLocal
 from models import Expense, Trip
+from routes.validation import (
+    parse_optional_datetime,
+    parse_positive_float,
+    parse_positive_int,
+)
 
 expenses_bp = Blueprint("expenses", __name__)
 
@@ -23,47 +25,15 @@ def _serialize_expense(expense):
 
 
 def _parse_datetime(value, field_name):
-    if value in (None, ""):
-        return None
-
-    if isinstance(value, str):
-        normalized = value.replace("Z", "+00:00")
-        try:
-            return datetime.fromisoformat(normalized)
-        except ValueError:
-            raise ValueError(f"{field_name} must be a valid ISO 8601 datetime")
-
-    raise ValueError(f"{field_name} must be a string")
+    return parse_optional_datetime(value, field_name)
 
 
 def _parse_positive_amount(value):
-    if isinstance(value, bool):
-        raise ValueError("amount must be a number greater than 0")
-
-    try:
-        amount = float(value)
-    except (TypeError, ValueError):
-        raise ValueError("amount must be a number greater than 0")
-
-    if not isfinite(amount) or amount <= 0:
-        raise ValueError("amount must be a number greater than 0")
-
-    return amount
+    return parse_positive_float(value, "amount")
 
 
 def _parse_trip_id(value):
-    if isinstance(value, bool):
-        raise ValueError("trip_id must be a positive integer")
-
-    try:
-        trip_id = int(value)
-    except (TypeError, ValueError):
-        raise ValueError("trip_id must be a positive integer")
-
-    if trip_id <= 0:
-        raise ValueError("trip_id must be a positive integer")
-
-    return trip_id
+    return parse_positive_int(value, "trip_id")
 
 
 def _create_expense_for_trip(trip_id):

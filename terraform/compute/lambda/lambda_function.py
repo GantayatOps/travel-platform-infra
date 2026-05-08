@@ -19,6 +19,7 @@ AWS_REGION = os.environ.get("AWS_REGION")
 BUCKET_NAME = os.environ["BUCKET_NAME"]
 SNS_TOPIC_ARN = os.environ.get("SNS_TOPIC_ARN")
 MAX_UPLOAD_BYTES = int(os.environ.get("MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))
+DB_PORT = 5432
 ALLOWED_CONTENT_TYPES = {
     "image/jpeg",
     "image/png",
@@ -49,6 +50,7 @@ def get_connection():
         dbname=DB_NAME,
         user=DB_USER,
         password=get_db_password(),
+        port=DB_PORT,
         connect_timeout=5,
     )
 
@@ -194,21 +196,14 @@ def process_sqs_record(record):
     if not isinstance(s3_records, list):
         raise ValueError("S3 event payload is missing Records list")
 
-    processed = 0
-    for s3_event in s3_records:
-        if process_s3_event(s3_event):
-            processed += 1
-
-    return processed
+    return sum(1 for s3_event in s3_records if process_s3_event(s3_event))
 
 
 def lambda_handler(event, context):
     sqs_records = event.get("Records", [])
     logger.info("Received %s SQS record(s)", len(sqs_records))
 
-    processed = 0
-    for record in sqs_records:
-        processed += process_sqs_record(record)
+    processed = sum(process_sqs_record(record) for record in sqs_records)
 
     return {
         "statusCode": 200,

@@ -1,10 +1,9 @@
-from datetime import datetime
-
 from flask import Blueprint, jsonify, request
 from sqlalchemy import func
 
 from db import SessionLocal
 from models import Expense, Trip, User
+from routes.validation import parse_optional_datetime, parse_required_string
 
 trips_bp = Blueprint("trips", __name__)
 MVP_USER_ID = 1
@@ -12,40 +11,18 @@ MVP_USER_EMAIL = "demo@example.com"
 
 
 def _parse_datetime(value, field_name):
-    if value in (None, ""):
-        return None
-
-    if isinstance(value, str):
-        normalized = value.replace("Z", "+00:00")
-        try:
-            return datetime.fromisoformat(normalized)
-        except ValueError:
-            raise ValueError(f"{field_name} must be a valid ISO 8601 datetime")
-
-    raise ValueError(f"{field_name} must be a string")
+    return parse_optional_datetime(value, field_name)
 
 
 def _parse_trip_name(value):
-    if not isinstance(value, str):
-        raise ValueError("name must be a string")
-
-    name = value.strip()
-    if not name:
-        raise ValueError("name is required")
-
-    if len(name) > 120:
-        raise ValueError("name must be 120 characters or fewer")
-
-    return name
+    return parse_required_string(value, "name", max_length=120)
 
 
 def _validate_trip_dates(start_date, end_date):
     if not start_date or not end_date:
         return
 
-    start_has_timezone = start_date.tzinfo is not None
-    end_has_timezone = end_date.tzinfo is not None
-    if start_has_timezone != end_has_timezone:
+    if (start_date.tzinfo is None) != (end_date.tzinfo is None):
         raise ValueError(
             "start_date and end_date must both include timezone offsets or both omit them"
         )

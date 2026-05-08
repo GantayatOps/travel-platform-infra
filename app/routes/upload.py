@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 
 from db import SessionLocal
 from models import Photo, Trip
+from routes.validation import normalize_content_type
 
 upload_bp = Blueprint("upload", __name__)
 
@@ -45,7 +46,7 @@ def _photo_key(trip_id, filename):
 
 
 def _validate_content_type(content_type):
-    normalized = (content_type or "").split(";", 1)[0].strip().lower()
+    normalized = normalize_content_type(content_type)
     if normalized not in ALLOWED_CONTENT_TYPES:
         allowed = ", ".join(sorted(ALLOWED_CONTENT_TYPES))
         raise ValueError(f"content_type must be one of: {allowed}")

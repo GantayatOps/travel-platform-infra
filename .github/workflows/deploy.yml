@@ -4,17 +4,9 @@ on:
   push:
     branches:
       - main
-    paths:
-      - ".github/scripts/deploy_app.sh"
-      - ".github/workflows/deploy.yml"
-      - ".terraform.lock.hcl"
-      - "app/**"
-      - "main.tf"
-      - "outputs.tf"
-      - "scripts/check_lambda_package.sh"
-      - "scripts/package_lambda.sh"
-      - "terraform/**"
-      - "variables.tf"
+    paths-ignore:
+      - "**/*.md"
+      - "docs/**"
   workflow_dispatch:
 
 permissions:
@@ -31,6 +23,45 @@ env:
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_required: ${{ steps.filter.outputs.deploy_required }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect deploy-relevant changes
+        id: filter
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "deploy_required=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          base="${{ github.event.before }}"
+          if [ -z "$base" ] || [[ "$base" =~ ^0+$ ]]; then
+            base="$(git rev-parse HEAD^)"
+          fi
+
+          deploy_required=false
+          while IFS= read -r path; do
+            case "$path" in
+              *.md|docs/*)
+                ;;
+              .github/scripts/deploy_app.sh|.github/workflows/deploy.yml|.terraform.lock.hcl|main.tf|outputs.tf|variables.tf|scripts/check_lambda_package.sh|scripts/package_lambda.sh|app/*|terraform/*)
+                deploy_required=true
+                break
+                ;;
+            esac
+          done < <(git diff --name-only "$base" "${{ github.sha }}")
+
+          echo "deploy_required=$deploy_required" >> "$GITHUB_OUTPUT"
+
   validate:
     runs-on: ubuntu-latest
 
@@ -95,7 +126,10 @@ jobs:
 
   build-and-push:
     runs-on: ubuntu-latest
-    needs: validate
+    needs:
+      - detect-changes
+      - validate
+    if: needs.detect-changes.outputs.deploy_required == 'true'
 
     steps:
       - name: Checkout code
@@ -112,16 +146,16 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t $ECR_REGISTRY/$APP_REPOSITORY:latest ./app
+          docker build -t "$ECR_REGISTRY/$APP_REPOSITORY:latest" ./app
 
       - name: Tag images
         run: |
-          docker tag $ECR_REGISTRY/$APP_REPOSITORY:latest $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG
+          docker tag "$ECR_REGISTRY/$APP_REPOSITORY:latest" "$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG"
 
       - name: Push to ECR
         run: |
-          docker push $ECR_REGISTRY/$APP_REPOSITORY:latest
-          docker push $ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG
+          docker push "$ECR_REGISTRY/$APP_REPOSITORY:latest"
+          docker push "$ECR_REGISTRY/$APP_REPOSITORY:$IMAGE_TAG"
 
       - name: Trigger SSM Deployment
         run: |

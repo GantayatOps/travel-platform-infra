@@ -12,6 +12,7 @@ DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
 AWS_REGION = os.getenv("AWS_REGION")
+DB_PORT = 5432
 
 
 def _load_db_password():
@@ -34,7 +35,7 @@ DATABASE_URL = URL.create(
     username=DB_USER,
     password=RESOLVED_DB_PASSWORD,
     host=DB_HOST,
-    port=5432,
+    port=DB_PORT,
     database=DB_NAME,
 )
 
@@ -42,7 +43,7 @@ engine = create_engine(
     DATABASE_URL,
     pool_size=5,
     max_overflow=10,
-    pool_pre_ping=True
+    pool_pre_ping=True,
 )
 
 SessionLocal = sessionmaker(bind=engine)

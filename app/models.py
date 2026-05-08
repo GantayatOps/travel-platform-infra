@@ -6,12 +6,16 @@ from sqlalchemy.orm import declarative_base, relationship
 Base = declarative_base()
 
 
+def utc_now():
+    return datetime.now(timezone.utc)
+
+
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, nullable=False, unique=True, index=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=utc_now)
 
     trips = relationship("Trip", back_populates="user", cascade="all, delete")
 
@@ -24,7 +28,7 @@ class Trip(Base):
     name = Column(String, nullable=False)
     start_date = Column(DateTime, nullable=True)
     end_date = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=utc_now)
 
     user = relationship("User", back_populates="trips")
     expenses = relationship("Expense", back_populates="trip", cascade="all, delete")
@@ -41,7 +45,7 @@ class Expense(Base):
     category = Column(String, default="general")
     description = Column(String, nullable=True)
     spent_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=utc_now)
 
     trip = relationship("Trip", back_populates="expenses")
 
@@ -56,8 +60,8 @@ class Photo(Base):
     status = Column(String, default="pending")
     content_type = Column(String, nullable=True)
     size = Column(Integer, nullable=True)
-    uploaded_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    uploaded_at = Column(DateTime, default=utc_now)
     processed_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=utc_now)
 
     trip = relationship("Trip", back_populates="photos")
