@@ -1,45 +1,26 @@
-variable "enable_lambda_trigger" {
-  description = "Whether to enable the SQS event source mapping for the Lambda function."
-  type        = bool
-  default     = false
+variable "event_source_config" {
+  description = "SQS event source mapping settings for the Lambda processor."
+  type = object({
+    enabled       = bool
+    sqs_queue_arn = string
+  })
 }
 
-variable "sqs_queue_arn" {
-  description = "ARN of the SQS queue used as an event source for the Lambda function."
-  type        = string
+variable "network_config" {
+  description = "Private subnet and security group placement for the Lambda function."
+  type = object({
+    private_subnet_ids = list(string)
+    security_group_id  = string
+  })
 }
 
-variable "sns_topic_arn" {
-  description = "ARN of the SNS topic where Lambda publishes processed upload notifications."
-  type        = string
-}
-
-variable "bucket_name" {
-  description = "S3 bucket name expected in upload events."
-  type        = string
-}
-
-variable "lambda_role_arn" {
-  description = "IAM role ARN assumed by the Lambda function."
-  type        = string
-}
-
-variable "private_subnet_ids" {
-  description = "Private subnet IDs where the Lambda function runs."
-  type        = list(string)
-}
-
-variable "lambda_sg_id" {
-  description = "Security group ID attached to the Lambda function."
-  type        = string
-}
-
-variable "db_host" {
-  description = "RDS PostgreSQL hostname used by Lambda."
-  type        = string
-}
-
-variable "db_secret_arn" {
-  description = "Secrets Manager ARN containing database credentials."
-  type        = string
+variable "runtime_config" {
+  description = "IAM, notification, storage, and database settings passed to the Lambda runtime."
+  type = object({
+    role_arn      = string
+    sns_topic_arn = string
+    bucket_name   = string
+    db_host       = string
+    db_secret_arn = string
+  })
 }

@@ -3,13 +3,13 @@ resource "aws_instance" "bastion_host" {
   ami           = data.aws_ami.amazon_linux.image_id
   instance_type = "t3.micro"
 
-  subnet_id = var.public_subnet_id
+  subnet_id = var.network_config.public_subnet_id
 
-  vpc_security_group_ids = [var.bastion_sg_id]
+  vpc_security_group_ids = [var.security_config.bastion_sg_id]
 
   associate_public_ip_address = true
 
-  key_name = var.key_name
+  key_name = var.runtime_config.key_name
 
   tags = {
     Name   = "travel-platform-bastion-host"
@@ -24,20 +24,20 @@ resource "aws_instance" "app_server" {
   ami           = data.aws_ami.custom_ami.id
   instance_type = "t3.micro"
 
-  subnet_id = var.private_subnet_id
+  subnet_id = var.network_config.private_subnet_id
 
-  vpc_security_group_ids = [var.app_sg_id]
+  vpc_security_group_ids = [var.security_config.app_sg_id]
 
   associate_public_ip_address = false
 
-  key_name = var.key_name
+  key_name = var.runtime_config.key_name
 
-  iam_instance_profile = var.instance_profile_name
+  iam_instance_profile = var.security_config.instance_profile_name
 
   user_data = templatefile("${path.module}/user_data.sh", {
-    sqs_queue_url = var.sqs_queue_url
-    db_endpoint   = var.db_endpoint
-    db_secret_arn = var.db_secret_arn
+    sqs_queue_url = var.runtime_config.sqs_queue_url
+    db_endpoint   = var.runtime_config.db_endpoint
+    db_secret_arn = var.runtime_config.db_secret_arn
   })
 
   tags = {

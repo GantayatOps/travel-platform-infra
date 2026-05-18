@@ -12,7 +12,7 @@ resource "aws_iam_policy" "travel_platform_s3_access_policy" {
           "s3:PutObject",
           "s3:GetObject"
         ]
-        Resource = "${var.bucket_arn}/*"
+        Resource = "${var.resource_arns.bucket}/*"
       },
       {
         # Bucket-level permission
@@ -20,7 +20,7 @@ resource "aws_iam_policy" "travel_platform_s3_access_policy" {
         Action = [
           "s3:ListBucket"
         ]
-        Resource = var.bucket_arn
+        Resource = var.resource_arns.bucket
       }
     ]
   })
@@ -84,7 +84,7 @@ resource "aws_iam_policy" "travel_platform_messaging_policy" {
         Action = [
           "sqs:SendMessage"
         ]
-        Resource = [var.sqs_queue_arn]
+        Resource = [var.resource_arns.sqs_queue]
       },
       {
         Sid    = "AllowSQSConsumeMessage"
@@ -94,7 +94,7 @@ resource "aws_iam_policy" "travel_platform_messaging_policy" {
           "sqs:DeleteMessage",
           "sqs:GetQueueAttributes"
         ]
-        Resource = [var.sqs_queue_arn]
+        Resource = [var.resource_arns.sqs_queue]
       }
     ]
   })
@@ -111,7 +111,7 @@ resource "aws_iam_role_policy_attachment" "sqs_sns_attach" {
 }
 
 resource "aws_iam_policy" "travel_platform_db_secret_access_policy" {
-  count = var.db_secret_arn != null ? 1 : 0
+  count = var.resource_arns.db_secret != null ? 1 : 0
 
   name = "travel_platform_db_secret_access_policy"
 
@@ -124,7 +124,7 @@ resource "aws_iam_policy" "travel_platform_db_secret_access_policy" {
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret"
         ]
-        Resource = var.db_secret_arn
+        Resource = var.resource_arns.db_secret
       }
     ]
   })
@@ -135,7 +135,7 @@ resource "aws_iam_policy" "travel_platform_db_secret_access_policy" {
 }
 
 resource "aws_iam_role_policy_attachment" "ec2_db_secret_attach" {
-  count = var.db_secret_arn != null ? 1 : 0
+  count = var.resource_arns.db_secret != null ? 1 : 0
 
   role       = aws_iam_role.travel_platform_ec2_role.name
   policy_arn = aws_iam_policy.travel_platform_db_secret_access_policy[0].arn
@@ -164,7 +164,7 @@ resource "aws_iam_role_policy" "lambda_policy" {
         Action = [
           "sns:Publish"
         ]
-        Resource = var.sns_topic_arn
+        Resource = var.resource_arns.sns_topic
       },
       {
         Effect = "Allow"
@@ -173,23 +173,23 @@ resource "aws_iam_role_policy" "lambda_policy" {
           "sqs:DeleteMessage",
           "sqs:GetQueueAttributes"
         ]
-        Resource = var.sqs_queue_arn
+        Resource = var.resource_arns.sqs_queue
       },
       {
         Effect = "Allow"
         Action = [
           "s3:GetObject"
         ]
-        Resource = "${var.bucket_arn}/*"
+        Resource = "${var.resource_arns.bucket}/*"
       }
-      ], var.db_secret_arn != null ? [
+      ], var.resource_arns.db_secret != null ? [
       {
         Effect = "Allow"
         Action = [
           "secretsmanager:GetSecretValue",
           "secretsmanager:DescribeSecret"
         ]
-        Resource = var.db_secret_arn
+        Resource = var.resource_arns.db_secret
       }
       ] : [], [
       {

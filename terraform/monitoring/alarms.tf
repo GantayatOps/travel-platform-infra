@@ -14,7 +14,7 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   ok_actions          = var.alarm_actions
 
   dimensions = {
-    FunctionName = var.lambda_function_name
+    FunctionName = var.alarm_targets.lambda_function_name
   }
 
   tags = {
@@ -38,7 +38,7 @@ resource "aws_cloudwatch_metric_alarm" "sqs_dlq_visible_messages" {
   ok_actions          = var.alarm_actions
 
   dimensions = {
-    QueueName = var.sqs_dlq_name
+    QueueName = var.alarm_targets.sqs_dlq_name
   }
 
   tags = {
@@ -62,7 +62,7 @@ resource "aws_cloudwatch_metric_alarm" "app_instance_status_check" {
   ok_actions          = var.alarm_actions
 
   dimensions = {
-    InstanceId = var.app_instance_id
+    InstanceId = var.alarm_targets.app_instance_id
   }
 
   tags = {

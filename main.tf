@@ -36,36 +36,34 @@ module "security_layer" {
   # From Network Layer
   vpc_id = module.network_layer.vpc_id
 
-  # From Storage Layer
-  bucket_arn = module.storage_layer.bucket_arn
-
-  # From Messaging Layer
-  sqs_queue_arn = module.messaging_layer.sqs_queue_arn
-  sns_topic_arn = module.messaging_layer.sns_topic_arn
-  db_secret_arn = local.db_secret_arn
+  resource_arns = {
+    bucket    = module.storage_layer.bucket_arn
+    sqs_queue = module.messaging_layer.sqs_queue_arn
+    sns_topic = module.messaging_layer.sns_topic_arn
+    db_secret = local.db_secret_arn
+  }
 }
 
 module "compute_layer" {
   source = "./terraform/compute"
 
-  # Network inputs
-  public_subnet_id  = module.network_layer.public_subnet_id
-  private_subnet_id = module.network_layer.private_subnet_id
+  network_config = {
+    public_subnet_id  = module.network_layer.public_subnet_id
+    private_subnet_id = module.network_layer.private_subnet_id
+  }
 
-  # Security inputs
-  bastion_sg_id         = module.security_layer.bastion_sg_id
-  app_sg_id             = module.security_layer.app_sg_id
-  instance_profile_name = module.security_layer.ec2_instance_profile_name
+  security_config = {
+    bastion_sg_id         = module.security_layer.bastion_sg_id
+    app_sg_id             = module.security_layer.app_sg_id
+    instance_profile_name = module.security_layer.ec2_instance_profile_name
+  }
 
-  # Existing EC2 key pair name
-  key_name = var.key_name
-
-  # Messaging input
-  sqs_queue_url = module.messaging_layer.sqs_queue_url
-
-  db_endpoint   = split(":", module.database_layer.db_endpoint)[0]
-  db_secret_arn = local.db_secret_arn
-
+  runtime_config = {
+    key_name      = var.key_name
+    sqs_queue_url = module.messaging_layer.sqs_queue_url
+    db_endpoint   = split(":", module.database_layer.db_endpoint)[0]
+    db_secret_arn = local.db_secret_arn
+  }
 }
 
 module "database_layer" {
@@ -107,34 +105,36 @@ module "notification_layer" {
 module "lambda_layer" {
   source = "./terraform/compute/lambda"
 
-  # Root input
-  enable_lambda_trigger = var.enable_lambda_trigger
+  event_source_config = {
+    enabled       = var.enable_lambda_trigger
+    sqs_queue_arn = module.messaging_layer.sqs_queue_arn
+  }
 
-  # Messaging inputs
-  sqs_queue_arn = module.messaging_layer.sqs_queue_arn
-  sns_topic_arn = module.messaging_layer.sns_topic_arn
-  bucket_name   = module.storage_layer.bucket_id
+  network_config = {
+    private_subnet_ids = [
+      module.network_layer.private_subnet_id,
+      module.network_layer.private_subnet_id_2
+    ]
+    security_group_id = module.security_layer.lambda_sg_id
+  }
 
-  # Security inputs
-  lambda_role_arn = module.security_layer.lambda_role_arn
-  lambda_sg_id    = module.security_layer.lambda_sg_id
-
-  # Network inputs
-  private_subnet_ids = [
-    module.network_layer.private_subnet_id,
-    module.network_layer.private_subnet_id_2
-  ]
-
-  # Database inputs
-  db_host       = module.database_layer.db_host
-  db_secret_arn = local.db_secret_arn
+  runtime_config = {
+    role_arn      = module.security_layer.lambda_role_arn
+    sns_topic_arn = module.messaging_layer.sns_topic_arn
+    bucket_name   = module.storage_layer.bucket_id
+    db_host       = module.database_layer.db_host
+    db_secret_arn = local.db_secret_arn
+  }
 }
 
 module "monitoring_layer" {
   source = "./terraform/monitoring"
 
-  lambda_function_name = module.lambda_layer.lambda_function_name
-  sqs_dlq_name         = module.messaging_layer.sqs_dlq_name
-  app_instance_id      = module.compute_layer.app_instance_id
-  alarm_actions        = [module.messaging_layer.sns_topic_arn]
+  alarm_targets = {
+    lambda_function_name = module.lambda_layer.lambda_function_name
+    sqs_dlq_name         = module.messaging_layer.sqs_dlq_name
+    app_instance_id      = module.compute_layer.app_instance_id
+  }
+
+  alarm_actions = [module.messaging_layer.sns_topic_arn]
 }

@@ -36,6 +36,7 @@ flowchart LR
 
 - **Secret handling:** RDS manages the master password and stores it in AWS Secrets Manager; Terraform does not store plaintext database passwords in `terraform.tfvars`.
 - **Consistent metadata:** The root Terraform provider uses `locals.common_tags` with `default_tags` so ownership, environment, and management tags are applied consistently across modules.
+- **Typed module contracts:** Internal Terraform modules group related inputs into typed objects such as `network_config`, `security_config`, `runtime_config`, `resource_arns`, and `alarm_targets` instead of exposing a long list of tiny variables.
 - **Private networking:** The app server, Lambda, and RDS run in private subnets. AWS service access is handled through VPC endpoints for S3, ECR, SQS, SNS, Secrets Manager, and SSM instead of relying on a NAT gateway.
 - **Least-privilege service roles:** IAM policies are split by responsibility for S3 access, ECR pull/push, SQS/SNS messaging, Secrets Manager access, Lambda VPC access, and GitHub SSM deploy permissions.
 - **OIDC-based CI/CD:** GitHub Actions assumes an AWS role with OIDC, avoiding long-lived AWS access keys in CI.
