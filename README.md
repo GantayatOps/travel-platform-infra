@@ -32,6 +32,21 @@ flowchart LR
 - Lambda SQS consumer that marks uploaded photos as processed in Postgres.
 - GitHub Actions pipeline that builds/pushes the app image and deploys through SSM.
 
+## Engineering Highlights
+
+- **Secret handling:** RDS manages the master password and stores it in AWS Secrets Manager; Terraform does not store plaintext database passwords in `terraform.tfvars`.
+- **Consistent metadata:** The root Terraform provider uses `locals.common_tags` with `default_tags` so ownership, environment, and management tags are applied consistently across modules.
+- **Private networking:** The app server, Lambda, and RDS run in private subnets. AWS service access is handled through VPC endpoints for S3, ECR, SQS, SNS, Secrets Manager, and SSM instead of relying on a NAT gateway.
+- **Least-privilege service roles:** IAM policies are split by responsibility for S3 access, ECR pull/push, SQS/SNS messaging, Secrets Manager access, Lambda VPC access, and GitHub SSM deploy permissions.
+- **OIDC-based CI/CD:** GitHub Actions assumes an AWS role with OIDC, avoiding long-lived AWS access keys in CI.
+- **Safe app deployments:** CI ships the current deploy script to EC2 through SSM Run Command, pulls the commit-tagged image, runs Alembic migrations first, and only replaces the running app container after migrations succeed.
+- **Image retention boundary:** ECR repositories live in a separate Terraform stack with `prevent_destroy = true`, so application infrastructure can be recreated without deleting image history.
+- **Upload pipeline reliability:** S3 object-created events are filtered to `trips/`, delivered to SQS, retried through Lambda, and sent to a DLQ after repeated failures.
+- **Idempotent Lambda processing:** The Lambda updates only photos that are not already `processed`, decodes S3 event keys, validates bucket/key/size/content type, and treats SNS publishing as best-effort so notification failures do not force SQS retries.
+- **Storage hardening:** The asset bucket uses server-side encryption, versioning, and public access blocks. Uploads use presigned S3 URLs, so Flask never proxies file bodies.
+- **Operational visibility:** CloudWatch alarms cover Lambda errors, SQS DLQ messages, and EC2 instance status checks, with SNS used for notifications.
+- **Validation and regression checks:** The workflow compiles Python, runs unit tests, verifies the checked-in Lambda zip is fresh, runs Terraform format/validate, and skips deploys for docs-only pushes.
+
 ## Repository Layout
 
 ```text
@@ -140,6 +155,7 @@ Run local checks:
 python3 -m compileall app terraform/compute/lambda/lambda_function.py tests
 python3 -m unittest discover -s tests
 ./scripts/check_lambda_package.sh
+actionlint .github/workflows/deploy.yml
 terraform fmt -check -recursive
 terraform validate
 terraform -chdir=terraform/ecr validate
@@ -260,10 +276,13 @@ Latest live verification: `2026-05-07T15:11Z`.
 - Manual app deploy on EC2: `/home/ec2-user/update_app.sh IMAGE_TAG`
 - Lambda logs: CloudWatch Logs for `travel_platform_sqs_processor`
 - Failed upload-processing events: `travel_platform_dlq`
+- CloudWatch alarms: Lambda errors, SQS DLQ visible messages, and EC2 status checks.
 
-## Current Hardening Notes
+## Design Notes
 
 - The MVP uses a fixed demo user.
 - Photo uploads use presigned S3 URLs; Flask does not proxy upload bodies.
 - S3 upload processing is handled by Lambda, not by a long-running worker container.
 - Lambda publishes SNS notifications after successful photo processing.
+- The Lambda deployment package is checked in for Terraform portability and guarded by `scripts/check_lambda_package.sh`.
+- The workflow uses path filtering so docs-only changes do not trigger app deploys.
