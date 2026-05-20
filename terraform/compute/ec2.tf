@@ -1,7 +1,7 @@
 # Bastion host in the public subnet
 resource "aws_instance" "bastion_host" {
   ami           = data.aws_ami.amazon_linux.image_id
-  instance_type = "t3.micro"
+  instance_type = var.runtime_config.instance_type
 
   subnet_id = var.network_config.public_subnet_id
 
@@ -22,7 +22,7 @@ resource "aws_instance" "bastion_host" {
 resource "aws_instance" "app_server" {
   # Custom AMI includes Docker for container-based deploys.
   ami           = data.aws_ami.custom_ami.id
-  instance_type = "t3.micro"
+  instance_type = var.runtime_config.instance_type
 
   subnet_id = var.network_config.private_subnet_id
 

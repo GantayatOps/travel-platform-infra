@@ -11,11 +11,12 @@ locals {
   # Provider default tags keep ownership and environment metadata consistent across modules.
   common_tags = {
     Project     = "travel-platform"
-    Environment = "dev"
+    Environment = var.environment
     ManagedBy   = "terraform"
   }
 
-  db_secret_arn = module.database_layer.db_secret_arn
+  db_secret_arn     = module.database_layer.db_secret_arn
+  ec2_instance_type = lookup(var.instance_types, var.environment, "t3.micro")
 }
 
 provider "aws" {
@@ -60,6 +61,7 @@ module "compute_layer" {
 
   runtime_config = {
     key_name      = var.key_name
+    instance_type = local.ec2_instance_type
     sqs_queue_url = module.messaging_layer.sqs_queue_url
     db_endpoint   = split(":", module.database_layer.db_endpoint)[0]
     db_secret_arn = local.db_secret_arn

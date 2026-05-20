@@ -19,6 +19,7 @@ variable "runtime_config" {
   description = "Runtime configuration passed to EC2 instances and deployment user data."
   type = object({
     key_name      = string
+    instance_type = string
     sqs_queue_url = string
     db_endpoint   = string
     db_secret_arn = string
